@@ -75,6 +75,6 @@ Decisions and conflicts: `docs/DECISIONS.md`.
 
 ## Status (final)
 
-All sprints were completed. Final test run: 148 tests passed (server 82 unit + 54 integration + 6 E2E; client 6), with 93.7% line coverage of server code (`docs/results/test-report-*.txt`, `docs/results/coverage-summary.json`). Campaign data are in `docs/results/campaign-*`, `docs/results/ablation-*`; chapter drafts are `docs/CHAPTER4_DRAFT.md` (built by `scripts/build-chapters.mjs`) and `docs/CHAPTER5_DRAFT.md`.
+All sprints were completed. Final test run: 149 tests passed (server 83 unit + 54 integration + 6 E2E; client 6), with 93.6% line coverage of server code (`docs/results/test-report-*.txt`, `docs/results/coverage-summary.json`). Campaign data are in `docs/results/campaign-*`, `docs/results/ablation-*`; chapter drafts are `docs/CHAPTER4_DRAFT.md` (built by `scripts/build-chapters.mjs`) and `docs/CHAPTER5_DRAFT.md`.
 
 Files that differ from the plan above: no separate `comparisonService.js` (comparison and histogram logic is in `jobService.js`); simulator controllers are in `controllers/simulatorController.js` with services `otpCredentialService.js`, `oobService.js` and `webauthnService.js`; the client simulator pages are `pages/simulators/{Simulators,OtpSimulator,OobSimulator,WebAuthnSimulator}.jsx`.

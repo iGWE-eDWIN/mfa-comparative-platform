@@ -2,57 +2,55 @@
  RUN  v4.1.12 server
       Coverage enabled with v8
 
- ✓ |unit| tests/unit/runner.test.js > Benchmark runner (identical procedure for every protocol) > measures all metrics and discards warm-up 482ms
- ✓ |unit| tests/unit/runner.test.js > Benchmark runner (identical procedure for every protocol) > counts failed verifications in the error rate 125ms
- ✓ |unit| tests/unit/runner.test.js > Benchmark runner (identical procedure for every protocol) > records a protocol that cannot initialise and continues with the others 275ms
- ✓ |unit| tests/unit/runner.test.js > Benchmark runner (identical procedure for every protocol) > counts delivery exceptions as errors without aborting 132ms
- ✓ |unit| tests/unit/runner.test.js > Benchmark runner (identical procedure for every protocol) > stops on cancellation 153ms
- ✓ |unit| tests/unit/runner.test.js > Benchmark runner (identical procedure for every protocol) > fails on job timeout and on operation timeout 428ms
- ✓ |unit| tests/unit/runner.test.js > Benchmark runner (identical procedure for every protocol) > runs security simulations when enabled 161ms
- ✓ |integration| tests/integration/socketAndAdmin.test.js > Socket.IO real-time progress (FR7) > rejects unauthenticated sockets 71ms
- ✓ |integration| tests/integration/auth.test.js > FR1 registration > registers, hashes the password and sets a hardened session cookie 87ms
- ✓ |integration| tests/integration/auth.test.js > FR1 registration > validates input 10ms
+ ✓ |unit| tests/unit/runner.test.js > Benchmark runner (identical procedure for every protocol) > measures all metrics and discards warm-up 411ms
+ ✓ |unit| tests/unit/runner.test.js > Benchmark runner (identical procedure for every protocol) > counts failed verifications in the error rate 114ms
+ ✓ |unit| tests/unit/runner.test.js > Benchmark runner (identical procedure for every protocol) > records a protocol that cannot initialise and continues with the others 154ms
+ ✓ |unit| tests/unit/runner.test.js > Benchmark runner (identical procedure for every protocol) > counts delivery exceptions as errors without aborting 95ms
+ ✓ |unit| tests/unit/runner.test.js > Benchmark runner (identical procedure for every protocol) > stops on cancellation 97ms
+ ✓ |unit| tests/unit/runner.test.js > Benchmark runner (identical procedure for every protocol) > fails on job timeout and on operation timeout 414ms
+ ✓ |unit| tests/unit/runner.test.js > Benchmark runner (identical procedure for every protocol) > runs security simulations when enabled 75ms
+ ✓ |integration| tests/integration/auth.test.js > FR1 registration > registers, hashes the password and sets a hardened session cookie 90ms
+ ✓ |integration| tests/integration/auth.test.js > FR1 registration > validates input 11ms
+ ✓ |integration| tests/integration/socketAndAdmin.test.js > Socket.IO real-time progress (FR7) > rejects unauthenticated sockets 65ms
  ✓ |integration| tests/integration/auth.test.js > FR1 registration > rejects duplicate username or email 14ms
  ✓ |integration| tests/integration/auth.test.js > FR1 registration > requires JSON for state-changing requests (CSRF hardening) 5ms
- ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > logs in by username or email and reads /me 49ms
- ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > gives the same error for unknown user and wrong password 28ms
- ✓ |integration| tests/integration/rateLimit.test.js > express-rate-limit on login > returns 429 after 20 attempts in the window 242ms
- ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > creates a Pending job with merged, validated parameters and environment metadata 85ms
+ ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > logs in by username or email and reads /me 58ms
  ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > users {"username":1} (unique=true) 6ms
  ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > users {"email":1} (unique=true) 2ms
- ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > protocols {"name":1} (unique=true) 3ms
+ ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > protocols {"name":1} (unique=true) 2ms
  ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > comparison_jobs {"userId":1} (unique=false) 2ms
  ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > comparison_jobs {"status":1} (unique=false) 2ms
  ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > comparison_jobs {"createdAt":-1} (unique=false) 2ms
  ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > comparison_jobs {"protocols.protocolId":1} (unique=false) 2ms
- ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > results {"jobId":1} (unique=false) 2ms
+ ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > results {"jobId":1} (unique=false) 1ms
  ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > results {"protocolId":1} (unique=false) 2ms
- ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > audit_logs {"userId":1} (unique=false) 4ms
+ ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > audit_logs {"userId":1} (unique=false) 2ms
  ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > audit_logs {"timestamp":-1} (unique=false) 2ms
- ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > TTL indexes on the extension collections (D04) 4ms
- ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > seeded protocols collection has the four protocols with default parameters 6ms
- ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > locks the account identifier after 5 failures 96ms
- ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > blocks suspended users, including existing sessions 61ms
- ✓ |integration| tests/integration/simulatorAndMfa.test.js > HOTP simulator (FR4) > enrols with QR, stores the secret encrypted, verifies and rejects replay 479ms
- ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > rejects forged or tampered session tokens 9ms
+ ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > TTL indexes on the extension collections (D04) 3ms
+ ✓ |integration| tests/integration/indexes.test.js > Chapter 3 §3.9.4 indexes > seeded protocols collection has the four protocols with default parameters 4ms
+ ✓ |integration| tests/integration/rateLimit.test.js > express-rate-limit on login > returns 429 after 20 attempts in the window 213ms
+ ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > creates a Pending job with merged, validated parameters and environment metadata 62ms
+ ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > gives the same error for unknown user and wrong password 25ms
+ ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > locks the account identifier after 5 failures 63ms
+ ✓ |integration| tests/integration/simulatorAndMfa.test.js > HOTP simulator (FR4) > enrols with QR, stores the secret encrypted, verifies and rejects replay 401ms
+ ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > blocks suspended users, including existing sessions 45ms
+ ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > rejects forged or tampered session tokens 4ms
  ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > protects routes and enforces roles 34ms
- ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > sets Helmet security headers and an error envelope for unknown routes 4ms
- ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > allows only listed CORS origins 6ms
- ✓ |unit| tests/unit/crypto.test.js > AES-256-GCM secret storage > round-trips and never stores plaintext 9ms
+ ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > sets Helmet security headers and an error envelope for unknown routes 3ms
+ ✓ |integration| tests/integration/auth.test.js > FR1 login, session, logout > allows only listed CORS origins 4ms
+ ✓ |unit| tests/unit/crypto.test.js > AES-256-GCM secret storage > round-trips and never stores plaintext 7ms
  ✓ |unit| tests/unit/crypto.test.js > AES-256-GCM secret storage > detects tampering, wrong key and wrong AAD 3ms
  ✓ |unit| tests/unit/crypto.test.js > AES-256-GCM secret storage > uses a fresh IV each time 1ms
- ✓ |unit| tests/unit/crypto.test.js > AES-256-GCM secret storage > parses hex and base64 keys and rejects bad lengths 3ms
+ ✓ |unit| tests/unit/crypto.test.js > AES-256-GCM secret storage > parses hex and base64 keys and rejects bad lengths 2ms
  ✓ |unit| tests/unit/crypto.test.js > OOB code hashing and comparison > HMAC depends on code, salt and pepper 2ms
  ✓ |unit| tests/unit/crypto.test.js > OOB code hashing and comparison > safeEqual handles equal, unequal and different lengths 1ms
- ✓ |unit| tests/unit/crypto.test.js > OOB code hashing and comparison > random codes are fixed-length digits covering the range 109ms
- ✓ |integration| tests/integration/simulatorAndMfa.test.js > HOTP simulator (FR4) > locks after 5 failed attempts 338ms
- ✓ |integration| tests/integration/simulatorAndMfa.test.js > HOTP simulator (FR4) > cannot use another user's credential 304ms
- ✓ |unit| tests/unit/mailProviders.test.js > Mail provider abstraction > real providers require TLS and credentials from env (never hard-coded) 386ms
- ✓ |unit| tests/unit/mailProviders.test.js > Mail provider abstraction > reports a clear 503 when a provider is not configured 14ms
- ✓ |unit| tests/unit/mailProviders.test.js > Mail provider abstraction > ethereal: creates a test account once and caches it 20ms
- ✓ |integration| tests/integration/simulatorAndMfa.test.js > HOTP simulator (FR4) > validates code format and protocol name 41ms
- ✓ |unit| tests/unit/otp.test.js > HOTP — RFC 4226 Appendix D test vectors > counter 0 → 755224 5ms
- ✓ |unit| tests/unit/otp.test.js > HOTP — RFC 4226 Appendix D test vectors > counter 1 → 287082 0ms
+ ✓ |unit| tests/unit/crypto.test.js > OOB code hashing and comparison > random codes are fixed-length digits covering the range 64ms
+ ✓ |unit| tests/unit/mailProviders.test.js > Mail provider abstraction > real providers require TLS and credentials from env (never hard-coded) 312ms
+ ✓ |unit| tests/unit/mailProviders.test.js > Mail provider abstraction > reports a clear 503 when a provider is not configured 13ms
+ ✓ |unit| tests/unit/mailProviders.test.js > Mail provider abstraction > ethereal: creates a test account once and caches it 26ms
+ ✓ |integration| tests/integration/simulatorAndMfa.test.js > HOTP simulator (FR4) > locks after 5 failed attempts 311ms
+ ✓ |unit| tests/unit/otp.test.js > HOTP — RFC 4226 Appendix D test vectors > counter 0 → 755224 3ms
+ ✓ |unit| tests/unit/otp.test.js > HOTP — RFC 4226 Appendix D test vectors > counter 1 → 287082 1ms
  ✓ |unit| tests/unit/otp.test.js > HOTP — RFC 4226 Appendix D test vectors > counter 2 → 359152 0ms
  ✓ |unit| tests/unit/otp.test.js > HOTP — RFC 4226 Appendix D test vectors > counter 3 → 969429 0ms
  ✓ |unit| tests/unit/otp.test.js > HOTP — RFC 4226 Appendix D test vectors > counter 4 → 338314 0ms
@@ -64,7 +62,7 @@
  ✓ |unit| tests/unit/otp.test.js > TOTP — RFC 6238 Appendix B test vectors (8 digits) > T=59 1ms
  ✓ |unit| tests/unit/otp.test.js > TOTP — RFC 6238 Appendix B test vectors (8 digits) > T=1111111109 0ms
  ✓ |unit| tests/unit/otp.test.js > TOTP — RFC 6238 Appendix B test vectors (8 digits) > T=1111111111 0ms
- ✓ |unit| tests/unit/otp.test.js > TOTP — RFC 6238 Appendix B test vectors (8 digits) > T=1234567890 0ms
+ ✓ |unit| tests/unit/otp.test.js > TOTP — RFC 6238 Appendix B test vectors (8 digits) > T=1234567890 1ms
  ✓ |unit| tests/unit/otp.test.js > TOTP — RFC 6238 Appendix B test vectors (8 digits) > T=2000000000 0ms
  ✓ |unit| tests/unit/otp.test.js > TOTP — RFC 6238 Appendix B test vectors (8 digits) > T=20000000000 0ms
  ✓ |unit| tests/unit/otp.test.js > TOTP — RFC 6238 Appendix B test vectors (8 digits) > time step boundaries 0ms
@@ -74,99 +72,102 @@
  ✓ |unit| tests/unit/otp.test.js > verifyTotp window and replay > accepts ±window steps and rejects beyond 1ms
  ✓ |unit| tests/unit/otp.test.js > verifyTotp window and replay > rejects a step not newer than lastUsedStep (RFC 6238 §5.2) 2ms
  ✓ |unit| tests/unit/otp.test.js > verifyTotp window and replay > rejects wrong codes and different lengths 1ms
- ✓ |unit| tests/unit/otp.test.js > base32 and otpauth URI > round-trips and matches RFC 4648 vectors 3ms
+ ✓ |unit| tests/unit/otp.test.js > base32 and otpauth URI > round-trips and matches RFC 4648 vectors 2ms
  ✓ |unit| tests/unit/otp.test.js > base32 and otpauth URI > builds hotp and totp URIs 1ms
- ✓ |integration| tests/integration/simulatorAndMfa.test.js > OOB Email simulator (FR4) > sends a real SMTP message over STARTTLS, stores only a hash, verifies once 259ms
- ✓ |unit| tests/unit/mailProviders.test.js > Mail provider abstraction > Mailer falls back from Ethereal to the local sink and records why 409ms
+ ✓ |integration| tests/integration/simulatorAndMfa.test.js > HOTP simulator (FR4) > cannot use another user's credential 233ms
+ ✓ |integration| tests/integration/simulatorAndMfa.test.js > HOTP simulator (FR4) > validates code format and protocol name 36ms
+ ✓ |unit| tests/unit/mailProviders.test.js > Mail provider abstraction > Mailer falls back from Ethereal to the local sink and records why 408ms
  ✓ |unit| tests/unit/mailProviders.test.js > ProtocolModule base class > abstract operations throw and defaults derive from the schema 2ms
- ✓ |integration| tests/integration/simulatorAndMfa.test.js > OOB Email simulator (FR4) > enforces resend cooldown, attempt limit and expiry 249ms
- ✓ |unit| tests/unit/stats.test.js > summarise > computes descriptive statistics 4ms
+ ✓ |integration| tests/integration/simulatorAndMfa.test.js > OOB Email simulator (FR4) > sends a real SMTP message over STARTTLS, stores only a hash, verifies once 254ms
+ ✓ |unit| tests/unit/stats.test.js > summarise > computes descriptive statistics 5ms
  ✓ |unit| tests/unit/stats.test.js > summarise > odd n median, single sample and empty input 3ms
  ✓ |unit| tests/unit/stats.test.js > summarise > nearest-rank percentiles 1ms
  ✓ |unit| tests/unit/stats.test.js > summarise > does not mutate the input 1ms
  ✓ |unit| tests/unit/stats.test.js > histogram > counts every sample, with an overflow bin above p99 1ms
  ✓ |unit| tests/unit/stats.test.js > histogram > handles constant and empty samples 0ms
- ✓ |integration| tests/integration/simulatorAndMfa.test.js > Second factor at login (D13) > TOTP login factor: password → mfa_pending → code → session 330ms
- ✓ |integration| tests/integration/simulatorAndMfa.test.js > Second factor at login (D13) > OOB Email login factor 202ms
- ✓ |integration| tests/integration/simulatorAndMfa.test.js > Second factor at login (D13) > mfa endpoints need a pending second-factor session 4ms
- ✓ |unit| tests/unit/protocols.test.js > ProtocolManager and common interface (§3.7.5) > registers exactly the four protocols 6ms
- ✓ |unit| tests/unit/protocols.test.js > ProtocolManager and common interface (§3.7.5) > HOTP implements the six operations 3ms
+ ✓ |integration| tests/integration/simulatorAndMfa.test.js > OOB Email simulator (FR4) > enforces resend cooldown, attempt limit and expiry 182ms
+ ✓ |integration| tests/integration/simulatorAndMfa.test.js > Second factor at login (D13) > TOTP login factor: password → mfa_pending → code → session 278ms
+ ✓ |integration| tests/integration/simulatorAndMfa.test.js > Second factor at login (D13) > OOB Email login factor 214ms
+ ✓ |unit| tests/unit/protocols.test.js > ProtocolManager and common interface (§3.7.5) > registers exactly the four protocols 5ms
+ ✓ |unit| tests/unit/protocols.test.js > ProtocolManager and common interface (§3.7.5) > HOTP implements the six operations 2ms
  ✓ |unit| tests/unit/protocols.test.js > ProtocolManager and common interface (§3.7.5) > TOTP implements the six operations 2ms
- ✓ |unit| tests/unit/protocols.test.js > ProtocolManager and common interface (§3.7.5) > OOB Email implements the six operations 2ms
- ✓ |unit| tests/unit/protocols.test.js > ProtocolManager and common interface (§3.7.5) > WebAuthn implements the six operations 2ms
- ✓ |unit| tests/unit/protocols.test.js > ProtocolManager and common interface (§3.7.5) > rejects unknown protocols and invalid parameters 10ms
+ ✓ |unit| tests/unit/protocols.test.js > ProtocolManager and common interface (§3.7.5) > OOB Email implements the six operations 1ms
+ ✓ |unit| tests/unit/protocols.test.js > ProtocolManager and common interface (§3.7.5) > WebAuthn implements the six operations 1ms
+ ✓ |unit| tests/unit/protocols.test.js > ProtocolManager and common interface (§3.7.5) > rejects unknown protocols and invalid parameters 7ms
  ✓ |unit| tests/unit/protocols.test.js > ProtocolManager and common interface (§3.7.5) > coerces string booleans correctly ("false" stays false) 1ms
  ✓ |unit| tests/unit/protocols.test.js > ProtocolManager and common interface (§3.7.5) > produces defaultConfig.parameters[] {name,value,type} 1ms
  ✓ |unit| tests/unit/protocols.test.js > HOTP module > authenticates, advances the counter and rejects replay 8ms
- ✓ |unit| tests/unit/protocols.test.js > HOTP module > resynchronises within the window, rejects beyond, and locks after maxAttempts 5ms
+ ✓ |unit| tests/unit/protocols.test.js > HOTP module > resynchronises within the window, rejects beyond, and locks after maxAttempts 3ms
  ✓ |unit| tests/unit/protocols.test.js > HOTP module > supports SHA-256/8 digits 2ms
- ✓ |unit| tests/unit/protocols.test.js > TOTP module > each iteration is a fresh step with the simulated clock 51ms
- ✓ |unit| tests/unit/protocols.test.js > TOTP module > rejects replay with preventReuse and accepts it without 3ms
- ✓ |unit| tests/unit/securitySimulation.test.js > Security Simulation Service > HOTP outcomes 75ms
- ✓ |unit| tests/unit/securitySimulation.test.js > Security Simulation Service > TOTP outcomes include the bare-algorithm replay evidence 14ms
- ✓ |unit| tests/unit/securitySimulation.test.js > Security Simulation Service > OOB Email outcomes 6ms
+ ✓ |unit| tests/unit/protocols.test.js > TOTP module > each iteration is a fresh step with the simulated clock 5ms
+ ✓ |unit| tests/unit/protocols.test.js > TOTP module > rejects replay with preventReuse and accepts it without 2ms
  ✓ |unit| tests/unit/protocols.test.js > TOTP module > tolerates ±window clock skew and rejects larger skew 3ms
  ✓ |unit| tests/unit/protocols.test.js > TOTP module > an older step is refused after a newer one was accepted 1ms
  ✓ |unit| tests/unit/protocols.test.js > TOTP module > expires codes when the clock moves on, and locks after failures 2ms
  ✓ |unit| tests/unit/protocols.test.js > OOB Email module > sends the code by email and verifies once 5ms
  ✓ |unit| tests/unit/protocols.test.js > OOB Email module > never stores the plaintext code 1ms
- ✓ |unit| tests/unit/protocols.test.js > OOB Email module > enforces expiry, attempt limit, cooldown and unknown challenges 1ms
+ ✓ |unit| tests/unit/protocols.test.js > OOB Email module > enforces expiry, attempt limit, cooldown and unknown challenges 2ms
  ✓ |unit| tests/unit/protocols.test.js > OOB Email module > reports delivery failure as an error and supports sendEmail=false 3ms
- ✓ |unit| tests/unit/securitySimulation.test.js > Security Simulation Service > a scenario that throws is reported as error, not a crash 2ms
- ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > runs to Completed and stores one result per protocol with every metric 2254ms
- ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > validates configuration (Figure 3.3 "Valid?") 45ms
- ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > refuses protocols disabled by an administrator 13ms
- ✓ |integration| tests/integration/simulatorAndMfa.test.js > Second factor at login (D13) > login factor must be active; credentials can be listed and deleted 275ms
- ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > isolates users: other users' jobs are 404 77ms
- ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > exports CSV and JSON (FR10) 80ms
- ✓ |unit| tests/unit/services.test.js > Export service > escapes CSV per RFC 4180 and neutralises formula injection 3ms
- ✓ |unit| tests/unit/services.test.js > Export service > writes one header row and one row per result 3ms
- ✓ |unit| tests/unit/services.test.js > Export service > JSON export can omit raw samples and carries the honesty note 1ms
+ ✓ |integration| tests/integration/simulatorAndMfa.test.js > Second factor at login (D13) > mfa endpoints need a pending second-factor session 3ms
+ ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > runs to Completed and stores one result per protocol with every metric 2038ms
+ ✓ |unit| tests/unit/securitySimulation.test.js > Security Simulation Service > HOTP outcomes 22ms
+ ✓ |unit| tests/unit/securitySimulation.test.js > Security Simulation Service > TOTP outcomes include the bare-algorithm replay evidence 12ms
+ ✓ |unit| tests/unit/securitySimulation.test.js > Security Simulation Service > OOB Email outcomes 9ms
+ ✓ |unit| tests/unit/securitySimulation.test.js > Security Simulation Service > a scenario that throws is reported as error, not a crash 21ms
+ ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > validates configuration (Figure 3.3 "Valid?") 34ms
+ ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > refuses protocols disabled by an administrator 11ms
+ ✓ |integration| tests/integration/simulatorAndMfa.test.js > Second factor at login (D13) > login factor must be active; credentials can be listed and deleted 231ms
+ ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > isolates users: other users' jobs are 404 59ms
+ ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > exports CSV and JSON (FR10) 64ms
+ ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > lists history with filters and pagination 43ms
+ ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > records usability and integration observations (FR12) 21ms
+ ✓ |unit| tests/unit/services.test.js > Export service > escapes CSV per RFC 4180 and neutralises formula injection 2ms
+ ✓ |unit| tests/unit/services.test.js > Export service > writes one header row and one row per result 2ms
+ ✓ |unit| tests/unit/services.test.js > Export service > JSON export can omit raw samples and carries the honesty note 0ms
  ✓ |unit| tests/unit/services.test.js > Assessment rubric (FR12) > measures lines of code and dependencies from the implementation 1ms
- ✓ |unit| tests/unit/services.test.js > Assessment rubric (FR12) > builds 1–5 scores for every criterion of every protocol 6ms
+ ✓ |unit| tests/unit/services.test.js > Assessment rubric (FR12) > builds 1–5 scores for every criterion of every protocol 4ms
  ✓ |unit| tests/unit/services.test.js > Assessment rubric (FR12) > applies edits and recomputes the aggregate 1ms
  ✓ |unit| tests/unit/services.test.js > Environment metadata and literature table > captures runtime, hardware and library versions 3ms
  ✓ |unit| tests/unit/services.test.js > Environment metadata and literature table > labels Table 2.1 as literature, not measured 1ms
- ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > lists history with filters and pagination 61ms
- ✓ |integration| tests/integration/jobs.test.js > Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9) > records usability and integration observations (FR12) 30ms
- ✓ |integration| tests/integration/jobs.test.js > Job state machine (Figure 3.4) and cancellation > cancels a running job → Cancelled, and rejects cancelling a finished one 1022ms
- ✓ |integration| tests/integration/socketAndAdmin.test.js > Socket.IO real-time progress (FR7) > delivers the job's events in order to its owner only, while the API stays responsive 4383ms
- ✓ |integration| tests/integration/socketAndAdmin.test.js > Administrator (Figure 3.1: manage users, protocols, logs) > lists and updates users, cannot modify self, and audits the change 71ms
- ✓ |integration| tests/integration/socketAndAdmin.test.js > Administrator (Figure 3.1: manage users, protocols, logs) > updates protocol status and validated default parameters 64ms
- ✓ |integration| tests/integration/socketAndAdmin.test.js > Administrator (Figure 3.1: manage users, protocols, logs) > queries audit logs by action prefix, and never stores secrets (FR11) 45ms
- ✓ |integration| tests/integration/socketAndAdmin.test.js > Administrator (Figure 3.1: manage users, protocols, logs) > audit helper strips sensitive keys 6ms
+ ✓ |unit| tests/unit/services.test.js > Environment configuration > treats empty values from .env.example as unset 0ms
+ ✓ |integration| tests/integration/jobs.test.js > Job state machine (Figure 3.4) and cancellation > cancels a running job → Cancelled, and rejects cancelling a finished one 837ms
+ ✓ |integration| tests/integration/socketAndAdmin.test.js > Socket.IO real-time progress (FR7) > delivers the job's events in order to its owner only, while the API stays responsive 3973ms
+ ✓ |integration| tests/integration/socketAndAdmin.test.js > Administrator (Figure 3.1: manage users, protocols, logs) > lists and updates users, cannot modify self, and audits the change 79ms
+ ✓ |integration| tests/integration/socketAndAdmin.test.js > Administrator (Figure 3.1: manage users, protocols, logs) > updates protocol status and validated default parameters 69ms
+ ✓ |integration| tests/integration/socketAndAdmin.test.js > Administrator (Figure 3.1: manage users, protocols, logs) > queries audit logs by action prefix, and never stores secrets (FR11) 42ms
+ ✓ |integration| tests/integration/socketAndAdmin.test.js > Administrator (Figure 3.1: manage users, protocols, logs) > audit helper strips sensitive keys 4ms
  ✓ |integration| tests/integration/socketAndAdmin.test.js > Administrator (Figure 3.1: manage users, protocols, logs) > system endpoints 38ms
- ✓ |integration| tests/integration/jobs.test.js > Job state machine (Figure 3.4) and cancellation > a job exceeding its timeout ends Failed with a meaningful error 1783ms
- ✓ |integration| tests/integration/jobs.test.js > Job state machine (Figure 3.4) and cancellation > rejects illegal transitions 5ms
- ✓ |e2e| tests/e2e/ui.e2e.test.js > E2E: WebAuthn through the real UI with a virtual authenticator > register account → passkey → passkey as login factor → sign in with password + passkey 1634ms
- ✓ |e2e| tests/e2e/ui.e2e.test.js > E2E: WebAuthn through the real UI with a virtual authenticator > runs a four-protocol comparison from the UI and shows live progress and results 4328ms
- ✓ |e2e| tests/e2e/webauthnModule.e2e.test.js > WebAuthn module with CDP virtual authenticator > registers and authenticates through a real browser ceremony 279ms
- ✓ |e2e| tests/e2e/webauthnModule.e2e.test.js > WebAuthn module with CDP virtual authenticator > supports RS256 and required user verification 264ms
- ✓ |e2e| tests/e2e/webauthnModule.e2e.test.js > WebAuthn module with CDP virtual authenticator > security simulations: origin binding, replay, forged signatures, expiry 1294ms
- ✓ |e2e| tests/e2e/webauthnModule.e2e.test.js > WebAuthn module with CDP virtual authenticator > benchmark runner reports server verification separately from the ceremony 355ms
+ ✓ |integration| tests/integration/jobs.test.js > Job state machine (Figure 3.4) and cancellation > a job exceeding its timeout ends Failed with a meaningful error 1620ms
+ ✓ |integration| tests/integration/jobs.test.js > Job state machine (Figure 3.4) and cancellation > rejects illegal transitions 2ms
+ ✓ |e2e| tests/e2e/ui.e2e.test.js > E2E: WebAuthn through the real UI with a virtual authenticator > register account → passkey → passkey as login factor → sign in with password + passkey 1266ms
+ ✓ |e2e| tests/e2e/ui.e2e.test.js > E2E: WebAuthn through the real UI with a virtual authenticator > runs a four-protocol comparison from the UI and shows live progress and results 3812ms
+ ✓ |e2e| tests/e2e/webauthnModule.e2e.test.js > WebAuthn module with CDP virtual authenticator > registers and authenticates through a real browser ceremony 259ms
+ ✓ |e2e| tests/e2e/webauthnModule.e2e.test.js > WebAuthn module with CDP virtual authenticator > supports RS256 and required user verification 294ms
+ ✓ |e2e| tests/e2e/webauthnModule.e2e.test.js > WebAuthn module with CDP virtual authenticator > security simulations: origin binding, replay, forged signatures, expiry 921ms
+ ✓ |e2e| tests/e2e/webauthnModule.e2e.test.js > WebAuthn module with CDP virtual authenticator > benchmark runner reports server verification separately from the ceremony 295ms
 
  Test Files  16 passed (16)
-      Tests  142 passed (142)
-   Start at  22:42:07
-   Duration  22.74s (transform 1.92s, setup 0ms, import 23.86s, tests 29.34s, environment 3ms)
+      Tests  143 passed (143)
+   Start at  22:53:16
+   Duration  19.48s (transform 1.88s, setup 0ms, import 21.44s, tests 24.86s, environment 3ms)
 
  % Coverage report from v8
 
 =============================== Coverage summary ===============================
-Statements   : 91.54% ( 1711/1869 )
-Branches     : 80.34% ( 748/931 )
-Functions    : 89.9% ( 365/406 )
-Lines        : 93.69% ( 1574/1680 )
+Statements   : 91.51% ( 1715/1874 )
+Branches     : 80.19% ( 753/939 )
+Functions    : 89.95% ( 367/408 )
+Lines        : 93.64% ( 1577/1684 )
 ================================================================================
 -------------------|---------|----------|---------|---------|-------------------
 File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
 -------------------|---------|----------|---------|---------|-------------------
-All files          |   91.54 |    80.34 |    89.9 |   93.69 |                   
- src               |   83.01 |    89.47 |   69.23 |      82 |                   
-  server.js        |   71.87 |    66.66 |   55.55 |   68.96 | 24,49-57          
- src/config        |      80 |    47.05 |    87.5 |   87.09 |                   
+All files          |   91.51 |    80.19 |   89.95 |   93.64 |                   
+ src               |   81.81 |    86.95 |   69.23 |   80.76 |                   
+  server.js        |   70.58 |       70 |   55.55 |   67.74 | 13,27,52-60       
+ src/config        |   81.57 |    47.61 |      90 |   87.87 |                   
   db.js            |     100 |    66.66 |     100 |     100 | 25                
-  env.js           |      72 |    41.66 |      75 |   81.81 | 63-64,69-70       
+  env.js           |      75 |    43.75 |   83.33 |   83.33 | 68-69,74-75       
   logger.js        |     100 |       50 |     100 |     100 | 9                 
  src/controllers   |   91.42 |    71.11 |   96.15 |   95.51 |                   
   ...Controller.js |   85.71 |    64.28 |   81.81 |   94.11 | 32,61             
