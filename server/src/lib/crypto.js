@@ -7,7 +7,8 @@ import crypto from 'node:crypto';
  */
 export function parseKey(raw) {
   const buf = /^[0-9a-fA-F]{64}$/.test(raw) ? Buffer.from(raw, 'hex') : Buffer.from(raw, 'base64');
-  if (buf.length !== 32) throw new Error('Encryption key must be 32 bytes (64 hex chars or base64)');
+  if (buf.length !== 32)
+    throw new Error('Encryption key must be 32 bytes (64 hex chars or base64)');
   return buf;
 }
 

@@ -20,7 +20,11 @@ const jobProtocolSchema = new mongoose.Schema(
     protocolId: { type: mongoose.Schema.Types.ObjectId, ref: 'Protocol', required: true },
     name: { type: String, required: true },
     config: { type: mongoose.Schema.Types.Mixed, default: {} },
-    status: { type: String, enum: ['Pending', 'Running', 'Completed', 'Failed', 'Skipped'], default: 'Pending' },
+    status: {
+      type: String,
+      enum: ['Pending', 'Running', 'Completed', 'Failed', 'Skipped'],
+      default: 'Pending',
+    },
   },
   { _id: false, minimize: false },
 );

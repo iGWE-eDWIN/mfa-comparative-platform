@@ -13,4 +13,6 @@ export async function requireAuth(req, _res, next) {
 export const requireRole =
   (...roles) =>
   (req, _res, next) =>
-    roles.includes(req.user?.role) ? next() : next(new HttpError(403, 'Insufficient permissions', 'FORBIDDEN'));
+    roles.includes(req.user?.role)
+      ? next()
+      : next(new HttpError(403, 'Insufficient permissions', 'FORBIDDEN'));

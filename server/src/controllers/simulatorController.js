@@ -5,7 +5,9 @@ import { Credential } from '../models/index.js';
 
 /** Single-flow simulators (FR4): each response carries the server-side timings of that step. */
 export async function otpEnrol(req, res) {
-  res.status(201).json(await enrolOtp(req.user, req.params.protocol.toUpperCase(), req.body.config));
+  res
+    .status(201)
+    .json(await enrolOtp(req.user, req.params.protocol.toUpperCase(), req.body.config));
 }
 
 export async function otpVerify(req, res) {
@@ -20,7 +22,18 @@ export async function oobVerify(req, res) {
   const r = await verifyOobCode(req.user, req.body.challengeId, req.body.code, 'simulator');
   if (r.ok) {
     // Proving mailbox control once makes email available as a login factor.
-    await Credential.updateOne({ userId: req.user.id, protocol: 'OOB Email' }, { $setOnInsert: { userId: req.user.id, protocol: 'OOB Email', label: 'Email code', status: 'active' } }, { upsert: true });
+    await Credential.updateOne(
+      { userId: req.user.id, protocol: 'OOB Email' },
+      {
+        $setOnInsert: {
+          userId: req.user.id,
+          protocol: 'OOB Email',
+          label: 'Email code',
+          status: 'active',
+        },
+      },
+      { upsert: true },
+    );
   }
   res.json(r);
 }

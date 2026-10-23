@@ -7,7 +7,11 @@ const FORBIDDEN = /pass|secret|code|otp|token|hash|key|signature/i;
 function scrub(value, depth = 0) {
   if (depth > 4 || value === null || typeof value !== 'object') return value;
   if (Array.isArray(value)) return value.map((v) => scrub(v, depth + 1));
-  return Object.fromEntries(Object.entries(value).filter(([k]) => !FORBIDDEN.test(k)).map(([k, v]) => [k, scrub(v, depth + 1)]));
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([k]) => !FORBIDDEN.test(k))
+      .map(([k, v]) => [k, scrub(v, depth + 1)]),
+  );
 }
 
 /**
@@ -19,11 +23,19 @@ function scrub(value, depth = 0) {
  */
 export async function audit(userId, action, details = {}) {
   try {
-    await AuditLog.create({ userId: userId ?? null, action, details: scrub(details), timestamp: new Date() });
+    await AuditLog.create({
+      userId: userId ?? null,
+      action,
+      details: scrub(details),
+      timestamp: new Date(),
+    });
   } catch (err) {
     logger.error({ err, action }, 'audit write failed');
   }
 }
 
 /** Request metadata worth keeping with an audit event. */
-export const reqMeta = (req) => ({ ip: req.ip, userAgent: req.get('user-agent')?.slice(0, 200) ?? null });
+export const reqMeta = (req) => ({
+  ip: req.ip,
+  userAgent: req.get('user-agent')?.slice(0, 200) ?? null,
+});

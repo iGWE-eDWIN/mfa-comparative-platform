@@ -8,7 +8,11 @@ import { env } from '../config/env.js';
 import { User } from '../models/index.js';
 
 function startSession(res, user) {
-  res.cookie(auth.SESSION_COOKIE, auth.issueSessionToken(user), auth.cookieOptions(env.JWT_TTL_SECONDS));
+  res.cookie(
+    auth.SESSION_COOKIE,
+    auth.issueSessionToken(user),
+    auth.cookieOptions(env.JWT_TTL_SECONDS),
+  );
   res.clearCookie(auth.MFA_COOKIE, { path: '/' });
 }
 
@@ -31,21 +35,25 @@ export async function login(req, res) {
 /** Resolve the pending second-factor state from the short-lived mfa cookie. */
 async function pending(req) {
   const claims = auth.verifyMfaToken(req.cookies?.[auth.MFA_COOKIE]);
-  if (!claims) throw new HttpError(401, 'Second-factor session expired; sign in again', 'MFA_EXPIRED');
+  if (!claims)
+    throw new HttpError(401, 'Second-factor session expired; sign in again', 'MFA_EXPIRED');
   const user = await User.findById(claims.sub);
-  if (!user || user.status !== 'active') throw new HttpError(401, 'Account unavailable', 'MFA_EXPIRED');
+  if (!user || user.status !== 'active')
+    throw new HttpError(401, 'Account unavailable', 'MFA_EXPIRED');
   return { user, safe: user.toSafeJSON(), claims };
 }
 
 export async function mfaSendOob(req, res) {
   const { safe, claims } = await pending(req);
-  if (claims.method !== 'OOB Email') throw new HttpError(400, 'Login factor is not email', 'WRONG_METHOD');
+  if (claims.method !== 'OOB Email')
+    throw new HttpError(400, 'Login factor is not email', 'WRONG_METHOD');
   res.json(await sendOobCode(safe, 'login'));
 }
 
 export async function mfaWebAuthnOptions(req, res) {
   const { safe, claims } = await pending(req);
-  if (claims.method !== 'WebAuthn') throw new HttpError(400, 'Login factor is not WebAuthn', 'WRONG_METHOD');
+  if (claims.method !== 'WebAuthn')
+    throw new HttpError(400, 'Login factor is not WebAuthn', 'WRONG_METHOD');
   res.json(await authenticationOptions(safe, 'login'));
 }
 
@@ -56,16 +64,24 @@ export async function mfaVerify(req, res) {
     if (!req.body.code) throw new HttpError(400, 'Code required', 'VALIDATION_ERROR');
     r = await verifyOtpCredential(safe, claims.cid, req.body.code, 'login');
   } else if (claims.method === 'OOB Email') {
-    if (!req.body.code || !req.body.challengeId) throw new HttpError(400, 'Code and challengeId required', 'VALIDATION_ERROR');
+    if (!req.body.code || !req.body.challengeId)
+      throw new HttpError(400, 'Code and challengeId required', 'VALIDATION_ERROR');
     r = await verifyOobCode(safe, req.body.challengeId, req.body.code, 'login');
   } else {
     r = await verifyAuthentication(safe, req.body.response, 'login');
   }
   if (!r.ok) {
-    await audit(user._id, 'auth.mfa_failed', { method: claims.method, reason: r.reason, ...reqMeta(req) });
+    await audit(user._id, 'auth.mfa_failed', {
+      method: claims.method,
+      reason: r.reason,
+      ...reqMeta(req),
+    });
     throw new HttpError(401, `Second factor rejected (${r.reason})`, 'MFA_FAILED');
   }
-  await audit(user._id, 'auth.login_succeeded', { method: `password+${claims.method}`, ...reqMeta(req) });
+  await audit(user._id, 'auth.login_succeeded', {
+    method: `password+${claims.method}`,
+    ...reqMeta(req),
+  });
   startSession(res, user);
   res.json({ user: safe });
 }

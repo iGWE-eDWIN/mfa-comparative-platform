@@ -31,13 +31,22 @@ export function hotp(secret, counter, { digits = 6, algorithm = 'SHA1' } = {}) {
  * so timing does not reveal which counter matched.
  * @returns {{ ok: boolean, matchedCounter: number|null, drift: number|null }}
  */
-export function verifyHotp(secret, code, counter, { lookAheadWindow = 10, digits = 6, algorithm = 'SHA1' } = {}) {
+export function verifyHotp(
+  secret,
+  code,
+  counter,
+  { lookAheadWindow = 10, digits = 6, algorithm = 'SHA1' } = {},
+) {
   let matched = null;
   for (let i = 0; i <= lookAheadWindow; i++) {
     const candidate = hotp(secret, counter + i, { digits, algorithm });
     if (safeEqual(candidate, code) && matched === null) matched = counter + i;
   }
-  return { ok: matched !== null, matchedCounter: matched, drift: matched === null ? null : matched - counter };
+  return {
+    ok: matched !== null,
+    matchedCounter: matched,
+    drift: matched === null ? null : matched - counter,
+  };
 }
 
 /** T = floor((unixTime - T0) / X) — RFC 6238 §4.2. */
@@ -46,7 +55,11 @@ export function timeStep(unixSeconds, step = 30, t0 = 0) {
 }
 
 /** TOTP value for a given Unix time in seconds. */
-export function totp(secret, unixSeconds, { step = 30, digits = 6, algorithm = 'SHA1', t0 = 0 } = {}) {
+export function totp(
+  secret,
+  unixSeconds,
+  { step = 30, digits = 6, algorithm = 'SHA1', t0 = 0 } = {},
+) {
   return hotp(secret, timeStep(unixSeconds, step, t0), { digits, algorithm });
 }
 
@@ -75,8 +88,22 @@ export function verifyTotp(
 }
 
 /** Build an otpauth:// key URI for QR enrolment (Google Authenticator key-URI format). */
-export function otpauthUri({ type, label, issuer, secretBase32, algorithm, digits, counter, period }) {
-  const params = new URLSearchParams({ secret: secretBase32, issuer, algorithm, digits: String(digits) });
+export function otpauthUri({
+  type,
+  label,
+  issuer,
+  secretBase32,
+  algorithm,
+  digits,
+  counter,
+  period,
+}) {
+  const params = new URLSearchParams({
+    secret: secretBase32,
+    issuer,
+    algorithm,
+    digits: String(digits),
+  });
   if (type === 'hotp') params.set('counter', String(counter ?? 0));
   if (type === 'totp') params.set('period', String(period ?? 30));
   return `otpauth://${type}/${encodeURIComponent(issuer)}:${encodeURIComponent(label)}?${params}`;

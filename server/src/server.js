@@ -12,10 +12,20 @@ export async function start({ port = env.PORT, mongoUri } = {}) {
   await connectDb(mongoUri);
   if (['local', 'ethereal'].includes(env.MAIL_PROVIDER)) await startLocalSink();
   // Resolve the provider at boot (Ethereal account creation or fallback) so the first OTP is not delayed.
-  getMailer().init().then(
-    (info) => logger.info({ provider: info.provider, fallback: info.fallbackReason }, 'Mail provider ready'),
-    (err) => logger.warn({ err: err.message }, 'Mail provider not ready; OOB Email will report an error until configured'),
-  );
+  getMailer()
+    .init()
+    .then(
+      (info) =>
+        logger.info(
+          { provider: info.provider, fallback: info.fallbackReason },
+          'Mail provider ready',
+        ),
+      (err) =>
+        logger.warn(
+          { err: err.message },
+          'Mail provider not ready; OOB Email will report an error until configured',
+        ),
+    );
   const app = createApp();
   const server = http.createServer(app);
   initSocket(server);

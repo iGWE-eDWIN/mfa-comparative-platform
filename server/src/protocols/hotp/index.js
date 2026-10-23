@@ -29,7 +29,12 @@ export class HotpModule extends ProtocolModule {
     hardwareRequirement: 'Optional (hardware token or software authenticator app)',
     channelDependency: 'None (offline token)',
     dependencies: ['node:crypto'],
-    implementationFiles: ['protocols/hotp/index.js', 'lib/otp.js', 'lib/crypto.js', 'services/otpCredentialService.js'],
+    implementationFiles: [
+      'protocols/hotp/index.js',
+      'lib/otp.js',
+      'lib/crypto.js',
+      'services/otpCredentialService.js',
+    ],
   };
 
   async initialize() {
@@ -43,7 +48,12 @@ export class HotpModule extends ProtocolModule {
     };
     const enrolmentNs = process.hrtime.bigint() - start;
     this.token = { secret, counter: 0 };
-    this.observations = { resyncCount: 0, maxAcceptedDrift: 0, rejectedOutsideWindow: 0, lockouts: 0 };
+    this.observations = {
+      resyncCount: 0,
+      maxAcceptedDrift: 0,
+      rejectedOutsideWindow: 0,
+      lockouts: 0,
+    };
     return { enrolmentNs };
   }
 

@@ -24,10 +24,15 @@ function gc() {
   forceGc();
 }
 
-const cpuNow = () => (typeof process.threadCpuUsage === 'function' ? process.threadCpuUsage() : process.cpuUsage());
-const CPU_SOURCE = typeof process.threadCpuUsage === 'function' ? 'process.threadCpuUsage (benchmark thread only)' : 'process.cpuUsage (whole process)';
+const cpuNow = () =>
+  typeof process.threadCpuUsage === 'function' ? process.threadCpuUsage() : process.cpuUsage();
+const CPU_SOURCE =
+  typeof process.threadCpuUsage === 'function'
+    ? 'process.threadCpuUsage (benchmark thread only)'
+    : 'process.cpuUsage (whole process)';
 const round = (x, d = 6) => (x === null || x === undefined ? x : Math.round(x * 10 ** d) / 10 ** d);
-const roundSummary = (s) => Object.fromEntries(Object.entries(s).map(([k, v]) => [k, k === 'n' ? v : round(v)]));
+const roundSummary = (s) =>
+  Object.fromEntries(Object.entries(s).map(([k, v]) => [k, k === 'n' ? v : round(v)]));
 
 export class CancelledError extends Error {
   constructor() {
@@ -44,7 +49,13 @@ export class CancelledError extends Error {
  * @param {(event: string, payload: object) => void} [p.emit]
  * @param {() => boolean} [p.isCancelled]
  */
-export async function runBenchmark({ protocols, settings, makeCtx, emit = () => {}, isCancelled = () => false }) {
+export async function runBenchmark({
+  protocols,
+  settings,
+  makeCtx,
+  emit = () => {},
+  isCancelled = () => false,
+}) {
   const deadline = Date.now() + settings.timeoutMs;
   const perProtocolWork = settings.warmupIterations + settings.iterations;
   const totalWork = perProtocolWork * protocols.length;
@@ -66,10 +77,19 @@ export async function runBenchmark({ protocols, settings, makeCtx, emit = () => 
     const M = getModuleClass(name);
     const ctx = makeCtx({ offsetMs: 0 });
     let module = null;
-    const base = { protocolName: name, config, hardwareRequirement: M.metadata.hardwareRequirement, channelDependency: M.metadata.channelDependency };
+    const base = {
+      protocolName: name,
+      config,
+      hardwareRequirement: M.metadata.hardwareRequirement,
+      channelDependency: M.metadata.channelDependency,
+    };
     try {
       module = createModule(name, ctx, config);
-      const { enrolmentNs } = await withTimeout(module.initialize(), settings.operationTimeoutMs * 2, `${name} initialisation`);
+      const { enrolmentNs } = await withTimeout(
+        module.initialize(),
+        settings.operationTimeoutMs * 2,
+        `${name} initialisation`,
+      );
 
       let lastEmit = 0;
       const progress = (phase, i, n) => {
@@ -77,14 +97,28 @@ export async function runBenchmark({ protocols, settings, makeCtx, emit = () => 
         const now = Date.now();
         if (now - lastEmit >= 200 || i === n) {
           lastEmit = now;
-          emit('iteration:progress', { protocol: name, phase, iteration: i, of: n, percent: round((doneWork / totalWork) * 100, 1) });
+          emit('iteration:progress', {
+            protocol: name,
+            phase,
+            iteration: i,
+            of: n,
+            percent: round((doneWork / totalWork) * 100, 1),
+          });
         }
       };
 
       const once = async () => {
         const t0 = process.hrtime.bigint();
-        const tx = await withTimeout(module.execute(), settings.operationTimeoutMs, `${name} execute`);
-        const v = await withTimeout(module.verify(tx), settings.operationTimeoutMs, `${name} verify`);
+        const tx = await withTimeout(
+          module.execute(),
+          settings.operationTimeoutMs,
+          `${name} execute`,
+        );
+        const v = await withTimeout(
+          module.verify(tx),
+          settings.operationTimeoutMs,
+          `${name} verify`,
+        );
         return { tx, v, latencyNs: process.hrtime.bigint() - t0 };
       };
 
@@ -115,8 +149,10 @@ export async function runBenchmark({ protocols, settings, makeCtx, emit = () => 
           samples.latency.push(round(nsToMs(latencyNs)));
           samples.processing.push(round(nsToMs(tx.serverNs + v.serverNs)));
           if (tx.meta?.sendNs !== undefined) samples.send.push(round(nsToMs(tx.meta.sendNs)));
-          if (tx.meta?.ceremonyNs !== undefined) samples.ceremony.push(round(nsToMs(tx.meta.ceremonyNs)));
-          if (name === 'WebAuthn') samples.serverVerify.push(round(nsToMs(v.meta?.serverVerifyNs ?? v.serverNs)));
+          if (tx.meta?.ceremonyNs !== undefined)
+            samples.ceremony.push(round(nsToMs(tx.meta.ceremonyNs)));
+          if (name === 'WebAuthn')
+            samples.serverVerify.push(round(nsToMs(v.meta?.serverVerifyNs ?? v.serverNs)));
           if (v.ok) success++;
           else errorsByReason[v.reason] = (errorsByReason[v.reason] ?? 0) + 1;
         } catch (err) {
@@ -163,7 +199,10 @@ export async function runBenchmark({ protocols, settings, makeCtx, emit = () => 
           eventLoopUtilisation: round(elu.utilization, 4),
           cpuSource: CPU_SOURCE,
           heapSource: 'v8.getHeapStatistics().used_heap_size, GC forced before and after',
-          note: name === 'WebAuthn' ? 'Browser (Chromium) CPU and memory are in a separate process and are not included.' : undefined,
+          note:
+            name === 'WebAuthn'
+              ? 'Browser (Chromium) CPU and memory are in a separate process and are not included.'
+              : undefined,
         },
         enrolmentTimeMs: round(nsToMs(enrolmentNs)),
         protocolObservations: observations,
@@ -171,12 +210,21 @@ export async function runBenchmark({ protocols, settings, makeCtx, emit = () => 
         rawSamples: { latency: samples.latency, processing: samples.processing },
       };
       if (name === 'OOB Email') {
-        metrics.channel = { provider: observations.provider, tls: observations.tls, fallbackReason: observations.fallbackReason, sendTime: roundSummary(summarise(samples.send)), note: 'SMTP submission time; depends on provider and network. Excluded from processingTime, included in latency.' };
+        metrics.channel = {
+          provider: observations.provider,
+          tls: observations.tls,
+          fallbackReason: observations.fallbackReason,
+          sendTime: roundSummary(summarise(samples.send)),
+          note: 'SMTP submission time; depends on provider and network. Excluded from processingTime, included in latency.',
+        };
         metrics.rawSamples.send = samples.send;
       }
       if (name === 'WebAuthn') {
         metrics.serverVerifyTime = roundSummary(summarise(samples.serverVerify));
-        metrics.channel = { ceremonyTime: roundSummary(summarise(samples.ceremony)), note: 'Browser ceremony with a CDP Virtual Authenticator (software). Included in latency only.' };
+        metrics.channel = {
+          ceremonyTime: roundSummary(summarise(samples.ceremony)),
+          note: 'Browser ceremony with a CDP Virtual Authenticator (software). Included in latency only.',
+        };
         metrics.rawSamples.serverVerify = samples.serverVerify;
         metrics.rawSamples.ceremony = samples.ceremony;
       }
@@ -184,10 +232,24 @@ export async function runBenchmark({ protocols, settings, makeCtx, emit = () => 
       let securityOutcome = null;
       if (settings.runSecuritySimulations) {
         checkpoint();
-        emit('iteration:progress', { protocol: name, phase: 'security', iteration: 0, of: 0, percent: round((doneWork / totalWork) * 100, 1) });
-        securityOutcome = await runSecuritySimulations(name, module.config, (clock) => makeCtx(clock));
+        emit('iteration:progress', {
+          protocol: name,
+          phase: 'security',
+          iteration: 0,
+          of: 0,
+          percent: round((doneWork / totalWork) * 100, 1),
+        });
+        securityOutcome = await runSecuritySimulations(name, module.config, (clock) =>
+          makeCtx(clock),
+        );
       }
-      const result = { ...base, config: module.config, status: 'Completed', metrics, securityOutcome };
+      const result = {
+        ...base,
+        config: module.config,
+        status: 'Completed',
+        metrics,
+        securityOutcome,
+      };
       results.push(result);
       emit('protocol:completed', { protocol: name, index, summary: summaryOf(result) });
     } catch (err) {
@@ -207,7 +269,8 @@ export async function runBenchmark({ protocols, settings, makeCtx, emit = () => 
 
 /** Compact summary for Socket.IO events. */
 export function summaryOf(r) {
-  if (r.status !== 'Completed') return { protocol: r.protocolName, status: r.status, error: r.error };
+  if (r.status !== 'Completed')
+    return { protocol: r.protocolName, status: r.status, error: r.error };
   return {
     protocol: r.protocolName,
     status: r.status,

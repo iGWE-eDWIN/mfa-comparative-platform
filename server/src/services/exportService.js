@@ -9,8 +9,14 @@ export const CSV_COLUMNS = [
   ['protocol', (_j, r) => r.protocolName],
   ['iterations', (j) => j.settings?.iterations],
   ['warmupIterations', (j) => j.settings?.warmupIterations],
-  ...['mean', 'median', 'p95', 'p99', 'min', 'max', 'stdDev'].map((k) => [`latency_${k}_ms`, (_j, r) => r.metrics?.latency?.[k]]),
-  ...['mean', 'median', 'p95', 'p99', 'min', 'max', 'stdDev'].map((k) => [`processing_${k}_ms`, (_j, r) => r.metrics?.processingTime?.[k]]),
+  ...['mean', 'median', 'p95', 'p99', 'min', 'max', 'stdDev'].map((k) => [
+    `latency_${k}_ms`,
+    (_j, r) => r.metrics?.latency?.[k],
+  ]),
+  ...['mean', 'median', 'p95', 'p99', 'min', 'max', 'stdDev'].map((k) => [
+    `processing_${k}_ms`,
+    (_j, r) => r.metrics?.processingTime?.[k],
+  ]),
   ['throughput_ops_per_sec', (_j, r) => r.metrics?.throughput?.opsPerSec],
   ['successful_ops', (_j, r) => r.metrics?.throughput?.successfulOps],
   ['error_count', (_j, r) => r.metrics?.errorCount],
@@ -48,7 +54,8 @@ export function csvCell(v) {
 /** @param {{ job: any, results: any[] }[]} rows */
 export function toCsv(rows) {
   const lines = [CSV_COLUMNS.map(([h]) => h).join(',')];
-  for (const { job, results } of rows) for (const r of results) lines.push(CSV_COLUMNS.map(([, f]) => csvCell(f(job, r))).join(','));
+  for (const { job, results } of rows)
+    for (const r of results) lines.push(CSV_COLUMNS.map(([, f]) => csvCell(f(job, r))).join(','));
   return lines.join('\r\n') + '\r\n';
 }
 

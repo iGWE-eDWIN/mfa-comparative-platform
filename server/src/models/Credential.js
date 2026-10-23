@@ -42,4 +42,5 @@ const credentialSchema = new mongoose.Schema(
 credentialSchema.index({ userId: 1, protocol: 1 });
 credentialSchema.index({ 'webauthn.credentialId': 1 }, { unique: true, sparse: true });
 
-export const Credential = mongoose.models.Credential ?? mongoose.model('Credential', credentialSchema);
+export const Credential =
+  mongoose.models.Credential ?? mongoose.model('Credential', credentialSchema);

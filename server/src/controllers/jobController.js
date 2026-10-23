@@ -29,14 +29,20 @@ function send(res, rows, { format, includeRaw }, name) {
   if (format === 'csv') {
     res.type('text/csv').attachment(`${name}.csv`).send(toCsv(rows));
   } else {
-    res.type('application/json').attachment(`${name}.json`).send(JSON.stringify(toJson(rows, includeRaw === 'true'), null, 2));
+    res
+      .type('application/json')
+      .attachment(`${name}.json`)
+      .send(JSON.stringify(toJson(rows, includeRaw === 'true'), null, 2));
   }
 }
 
 export async function exportOne(req, res) {
   const job = await jobs.getOwnedJob(req.user, req.params.id);
   const results = await Result.find({ jobId: job._id }).lean();
-  await audit(req.user.id, 'job.exported', { jobId: String(job._id), format: req.validQuery.format });
+  await audit(req.user.id, 'job.exported', {
+    jobId: String(job._id),
+    format: req.validQuery.format,
+  });
   send(res, [{ job: job.toObject(), results }], req.validQuery, `comparison-${job._id}`);
 }
 
@@ -48,7 +54,10 @@ export async function exportHistory(req, res) {
   if (q.protocol) filter['protocols.name'] = q.protocol;
   const list = await ComparisonJob.find(filter).sort({ createdAt: -1 }).limit(200).lean();
   const all = await Result.find({ jobId: { $in: list.map((j) => j._id) } }).lean();
-  const rows = list.map((job) => ({ job, results: all.filter((r) => String(r.jobId) === String(job._id)) }));
+  const rows = list.map((job) => ({
+    job,
+    results: all.filter((r) => String(r.jobId) === String(job._id)),
+  }));
   await audit(req.user.id, 'history.exported', { format: q.format, jobs: list.length });
   send(res, rows, q, 'comparison-history');
 }

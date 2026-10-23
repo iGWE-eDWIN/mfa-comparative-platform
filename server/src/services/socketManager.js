@@ -11,7 +11,15 @@ import { verifySessionToken, SESSION_COOKIE } from './authService.js';
  */
 let io = null;
 
-export const JOB_EVENTS = ['job:started', 'protocol:started', 'iteration:progress', 'protocol:completed', 'job:completed', 'job:failed', 'job:cancelled'];
+export const JOB_EVENTS = [
+  'job:started',
+  'protocol:started',
+  'iteration:progress',
+  'protocol:completed',
+  'job:completed',
+  'job:failed',
+  'job:cancelled',
+];
 
 export function initSocket(httpServer) {
   io = new Server(httpServer, {

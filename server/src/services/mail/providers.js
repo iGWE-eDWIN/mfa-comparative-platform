@@ -17,37 +17,101 @@ export const PROVIDERS = {
   async ethereal() {
     const account = await etherealAccount();
     return {
-      transport: { host: account.smtp.host, port: account.smtp.port, secure: false, requireTLS: true, auth: { user: account.user, pass: account.pass } },
-      info: { provider: 'ethereal', host: account.smtp.host, port: account.smtp.port, tls: 'STARTTLS (required)', previewSupported: true, user: account.user },
+      transport: {
+        host: account.smtp.host,
+        port: account.smtp.port,
+        secure: false,
+        requireTLS: true,
+        auth: { user: account.user, pass: account.pass },
+      },
+      info: {
+        provider: 'ethereal',
+        host: account.smtp.host,
+        port: account.smtp.port,
+        tls: 'STARTTLS (required)',
+        previewSupported: true,
+        user: account.user,
+      },
     };
   },
   async brevo() {
-    if (!env.BREVO_SMTP_USER || !env.BREVO_SMTP_KEY) throw configError('BREVO_SMTP_USER and BREVO_SMTP_KEY');
+    if (!env.BREVO_SMTP_USER || !env.BREVO_SMTP_KEY)
+      throw configError('BREVO_SMTP_USER and BREVO_SMTP_KEY');
     return {
-      transport: { host: 'smtp-relay.brevo.com', port: 587, secure: false, requireTLS: true, auth: { user: env.BREVO_SMTP_USER, pass: env.BREVO_SMTP_KEY } },
-      info: { provider: 'brevo', host: 'smtp-relay.brevo.com', port: 587, tls: 'STARTTLS (required)', previewSupported: false },
+      transport: {
+        host: 'smtp-relay.brevo.com',
+        port: 587,
+        secure: false,
+        requireTLS: true,
+        auth: { user: env.BREVO_SMTP_USER, pass: env.BREVO_SMTP_KEY },
+      },
+      info: {
+        provider: 'brevo',
+        host: 'smtp-relay.brevo.com',
+        port: 587,
+        tls: 'STARTTLS (required)',
+        previewSupported: false,
+      },
     };
   },
   async gmail() {
-    if (!env.GMAIL_USER || !env.GMAIL_APP_PASSWORD) throw configError('GMAIL_USER and GMAIL_APP_PASSWORD');
+    if (!env.GMAIL_USER || !env.GMAIL_APP_PASSWORD)
+      throw configError('GMAIL_USER and GMAIL_APP_PASSWORD');
     return {
-      transport: { host: 'smtp.gmail.com', port: 465, secure: true, auth: { user: env.GMAIL_USER, pass: env.GMAIL_APP_PASSWORD } },
-      info: { provider: 'gmail', host: 'smtp.gmail.com', port: 465, tls: 'implicit TLS', previewSupported: false },
+      transport: {
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: { user: env.GMAIL_USER, pass: env.GMAIL_APP_PASSWORD },
+      },
+      info: {
+        provider: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 465,
+        tls: 'implicit TLS',
+        previewSupported: false,
+      },
     };
   },
   async mailtrap() {
-    if (!env.MAILTRAP_USER || !env.MAILTRAP_PASS) throw configError('MAILTRAP_USER and MAILTRAP_PASS');
+    if (!env.MAILTRAP_USER || !env.MAILTRAP_PASS)
+      throw configError('MAILTRAP_USER and MAILTRAP_PASS');
     return {
-      transport: { host: env.MAILTRAP_HOST, port: env.MAILTRAP_PORT, secure: false, requireTLS: true, auth: { user: env.MAILTRAP_USER, pass: env.MAILTRAP_PASS } },
-      info: { provider: 'mailtrap', host: env.MAILTRAP_HOST, port: env.MAILTRAP_PORT, tls: 'STARTTLS (required)', previewSupported: false },
+      transport: {
+        host: env.MAILTRAP_HOST,
+        port: env.MAILTRAP_PORT,
+        secure: false,
+        requireTLS: true,
+        auth: { user: env.MAILTRAP_USER, pass: env.MAILTRAP_PASS },
+      },
+      info: {
+        provider: 'mailtrap',
+        host: env.MAILTRAP_HOST,
+        port: env.MAILTRAP_PORT,
+        tls: 'STARTTLS (required)',
+        previewSupported: false,
+      },
     };
   },
   async local() {
     const port = Number(process.env.LOCAL_SMTP_PORT ?? 2526);
     return {
       // Loopback only; the sink uses a self-signed development certificate, hence rejectUnauthorized=false.
-      transport: { host: '127.0.0.1', port, secure: false, requireTLS: true, tls: { rejectUnauthorized: false }, ignoreTLS: false },
-      info: { provider: 'local', host: '127.0.0.1', port, tls: 'STARTTLS (required, self-signed, loopback)', previewSupported: true },
+      transport: {
+        host: '127.0.0.1',
+        port,
+        secure: false,
+        requireTLS: true,
+        tls: { rejectUnauthorized: false },
+        ignoreTLS: false,
+      },
+      info: {
+        provider: 'local',
+        host: '127.0.0.1',
+        port,
+        tls: 'STARTTLS (required, self-signed, loopback)',
+        previewSupported: true,
+      },
     };
   },
 };
@@ -68,7 +132,9 @@ async function etherealAccount() {
   }
   const account = await Promise.race([
     nodemailer.createTestAccount(),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('Ethereal account creation timed out')), 10000)),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Ethereal account creation timed out')), 10000),
+    ),
   ]);
   await fs.mkdir(DATA_DIR, { recursive: true });
   await fs.writeFile(ETHEREAL_CACHE, JSON.stringify(account), { mode: 0o600 });

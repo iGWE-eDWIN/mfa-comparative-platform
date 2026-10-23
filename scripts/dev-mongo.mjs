@@ -14,7 +14,9 @@ const dbPath = path.join(root, '.mongo-data');
 fs.mkdirSync(dbPath, { recursive: true });
 const port = Number(process.env.DEV_MONGO_PORT ?? 27017);
 
-const server = await MongoMemoryServer.create({ instance: { port, dbPath, storageEngine: 'wiredTiger', ip: '127.0.0.1' } });
+const server = await MongoMemoryServer.create({
+  instance: { port, dbPath, storageEngine: 'wiredTiger', ip: '127.0.0.1' },
+});
 console.log(`MongoDB ready at ${server.getUri()} (data: ${dbPath})`);
 console.log('Set MONGODB_URI=mongodb://127.0.0.1:%d/mfa_platform in .env', port);
 const stop = async () => {

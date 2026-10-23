@@ -17,7 +17,17 @@ export function percentile(sorted, p) {
  */
 export function summarise(samples) {
   const n = samples.length;
-  if (n === 0) return { n: 0, mean: null, median: null, p95: null, p99: null, min: null, max: null, stdDev: null };
+  if (n === 0)
+    return {
+      n: 0,
+      mean: null,
+      median: null,
+      p95: null,
+      p99: null,
+      min: null,
+      max: null,
+      stdDev: null,
+    };
   const sorted = [...samples].sort((a, b) => a - b);
   const mean = sorted.reduce((s, x) => s + x, 0) / n;
   // Sample standard deviation (n - 1); zero for a single sample.
@@ -46,13 +56,18 @@ export function histogram(samples, bins = 30) {
   const lo = sorted[0];
   const hi = percentile(sorted, 99);
   const width = hi > lo ? (hi - lo) / bins : 1;
-  const out = Array.from({ length: bins }, (_, i) => ({ binStart: lo + i * width, binEnd: lo + (i + 1) * width, count: 0 }));
+  const out = Array.from({ length: bins }, (_, i) => ({
+    binStart: lo + i * width,
+    binEnd: lo + (i + 1) * width,
+    count: 0,
+  }));
   let overflow = 0;
   for (const x of sorted) {
     if (x > hi) overflow++;
     else out[Math.min(bins - 1, Math.floor((x - lo) / width))].count++;
   }
-  if (overflow) out.push({ binStart: hi, binEnd: sorted[sorted.length - 1], count: overflow, overflow: true });
+  if (overflow)
+    out.push({ binStart: hi, binEnd: sorted[sorted.length - 1], count: overflow, overflow: true });
   return out;
 }
 

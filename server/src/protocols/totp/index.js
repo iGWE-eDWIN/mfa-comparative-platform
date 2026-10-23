@@ -33,7 +33,13 @@ export class TotpModule extends ProtocolModule {
     hardwareRequirement: 'None (authenticator app on an existing phone)',
     channelDependency: 'None (offline, requires roughly synchronised clocks)',
     dependencies: ['node:crypto', 'qrcode'],
-    implementationFiles: ['protocols/totp/index.js', 'lib/otp.js', 'lib/crypto.js', 'lib/base32.js', 'services/otpCredentialService.js'],
+    implementationFiles: [
+      'protocols/totp/index.js',
+      'lib/otp.js',
+      'lib/crypto.js',
+      'lib/base32.js',
+      'services/otpCredentialService.js',
+    ],
   };
 
   /** Server clock in seconds, including the simulated offset. */
@@ -53,7 +59,12 @@ export class TotpModule extends ProtocolModule {
     const enrolmentNs = process.hrtime.bigint() - start;
     this.token = { secret };
     this.simOffset = 0;
-    this.observations = { acceptedDriftSteps: {}, rejectedOutsideWindow: 0, replayRejected: 0, lockouts: 0 };
+    this.observations = {
+      acceptedDriftSteps: {},
+      rejectedOutsideWindow: 0,
+      replayRejected: 0,
+      lockouts: 0,
+    };
     return { enrolmentNs };
   }
 
@@ -62,7 +73,11 @@ export class TotpModule extends ProtocolModule {
     if (this.config.advanceClockPerIteration) this.simOffset += this.config.timeStep;
     const skew = options.clockSkewSeconds ?? this.config.clockSkewSeconds;
     const tokenTime = this.serverNow() + skew;
-    const code = totp(this.token.secret, tokenTime, { step: this.config.timeStep, digits: this.config.digits, algorithm: this.config.algorithm });
+    const code = totp(this.token.secret, tokenTime, {
+      step: this.config.timeStep,
+      digits: this.config.digits,
+      algorithm: this.config.algorithm,
+    });
     return { artifact: { code }, serverNs: 0n, meta: { tokenTime } };
   }
 
@@ -96,7 +111,8 @@ export class TotpModule extends ProtocolModule {
       return fail('invalid_code', serverNs);
     }
     const key = String(r.drift);
-    this.observations.acceptedDriftSteps[key] = (this.observations.acceptedDriftSteps[key] ?? 0) + 1;
+    this.observations.acceptedDriftSteps[key] =
+      (this.observations.acceptedDriftSteps[key] ?? 0) + 1;
     return { ok: true, serverNs, meta: { driftSteps: r.drift, matchedStep: r.matchedStep } };
   }
 

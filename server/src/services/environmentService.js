@@ -5,7 +5,17 @@ import { createRequire } from 'node:module';
 import mongoose from 'mongoose';
 
 const require = createRequire(import.meta.url);
-const LIBS = ['@simplewebauthn/server', '@simplewebauthn/browser', 'nodemailer', 'mongoose', 'express', 'socket.io', 'playwright-core', 'zod', 'bcryptjs'];
+const LIBS = [
+  '@simplewebauthn/server',
+  '@simplewebauthn/browser',
+  'nodemailer',
+  'mongoose',
+  'express',
+  'socket.io',
+  'playwright-core',
+  'zod',
+  'bcryptjs',
+];
 
 function libVersion(name) {
   try {

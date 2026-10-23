@@ -16,13 +16,16 @@ export function notFound(req, _res, next) {
 }
 
 /** Centralised error handler: one envelope { error: { message, code, details? } } for every failure. */
-// eslint-disable-next-line no-unused-vars
 export function errorHandler(err, req, res, _next) {
   let status = err.status ?? 500;
   let body = { message: err.message, code: err.code ?? undefined, details: err.details };
   if (err instanceof ZodError) {
     status = 400;
-    body = { message: 'Validation failed', code: 'VALIDATION_ERROR', details: err.issues.map((i) => ({ path: i.path.join('.'), message: i.message })) };
+    body = {
+      message: 'Validation failed',
+      code: 'VALIDATION_ERROR',
+      details: err.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
+    };
   } else if (err instanceof mongoose.Error.CastError) {
     status = 400;
     body = { message: 'Invalid identifier', code: 'INVALID_ID' };

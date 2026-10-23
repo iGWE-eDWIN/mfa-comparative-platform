@@ -19,8 +19,13 @@ const running = new Map();
  * current status, so two concurrent transitions cannot both succeed.
  */
 export async function transition(jobId, from, to, set = {}) {
-  if (!JOB_TRANSITIONS[from]?.includes(to)) throw new Error(`Illegal job transition ${from} → ${to}`);
-  return ComparisonJob.findOneAndUpdate({ _id: jobId, status: from }, { $set: { status: to, ...set } }, { new: true });
+  if (!JOB_TRANSITIONS[from]?.includes(to))
+    throw new Error(`Illegal job transition ${from} → ${to}`);
+  return ComparisonJob.findOneAndUpdate(
+    { _id: jobId, status: from },
+    { $set: { status: to, ...set } },
+    { new: true },
+  );
 }
 
 export function enqueue(jobId) {
@@ -36,23 +41,35 @@ function pump() {
 }
 
 async function start(jobId) {
-  const job = await transition(jobId, 'Pending', 'Running', { startedAt: new Date(), 'progress.phase': 'initialising' });
+  const job = await transition(jobId, 'Pending', 'Running', {
+    startedAt: new Date(),
+    'progress.phase': 'initialising',
+  });
   if (!job) return pump(); // cancelled while queued
   const userId = String(job.userId);
-  const emit = (event, payload) => emitToUser(userId, event, { jobId: String(job._id), ...payload });
+  const emit = (event, payload) =>
+    emitToUser(userId, event, { jobId: String(job._id), ...payload });
   emit('job:started', { protocols: job.protocols.map((p) => p.name), settings: job.settings });
 
   let mailProvider = env.MAIL_PROVIDER;
   if (job.protocols.some((p) => p.name === 'OOB Email')) {
     // Resolve once on the API thread (it owns the local sink; Ethereal fallback is decided here).
-    const info = await getMailer().init().catch(() => null);
+    const info = await getMailer()
+      .init()
+      .catch(() => null);
     if (info) mailProvider = info.provider;
   }
 
   const worker = new Worker(WORKER, {
     workerData: {
       protocols: job.protocols.map((p) => ({ name: p.name, config: p.config })),
-      settings: { iterations: job.settings.iterations, warmupIterations: job.settings.warmupIterations, timeoutMs: job.settings.timeoutMs, operationTimeoutMs: job.settings.operationTimeoutMs, runSecuritySimulations: job.settings.runSecuritySimulations },
+      settings: {
+        iterations: job.settings.iterations,
+        warmupIterations: job.settings.warmupIterations,
+        timeoutMs: job.settings.timeoutMs,
+        operationTimeoutMs: job.settings.operationTimeoutMs,
+        runSecuritySimulations: job.settings.runSecuritySimulations,
+      },
       mailProvider,
       rp: { id: env.WEBAUTHN_RP_ID, name: env.WEBAUTHN_RP_NAME, origin: env.WEBAUTHN_ORIGIN },
     },
@@ -66,12 +83,20 @@ async function start(jobId) {
       const { event, payload } = msg;
       emit(event, payload);
       const now = Date.now();
-      if (event === 'protocol:started' || event === 'protocol:completed' || now - lastWrite > 1000) {
+      if (
+        event === 'protocol:started' ||
+        event === 'protocol:completed' ||
+        now - lastWrite > 1000
+      ) {
         lastWrite = now;
-        const set = { 'progress.currentProtocol': payload.protocol, 'progress.phase': payload.phase ?? event };
+        const set = {
+          'progress.currentProtocol': payload.protocol,
+          'progress.phase': payload.phase ?? event,
+        };
         if (payload.percent !== undefined) set['progress.percent'] = payload.percent;
         if (event === 'protocol:started') set[`protocols.${payload.index}.status`] = 'Running';
-        if (event === 'protocol:completed') set[`protocols.${payload.index}.status`] = payload.failed ? 'Failed' : 'Completed';
+        if (event === 'protocol:completed')
+          set[`protocols.${payload.index}.status`] = payload.failed ? 'Failed' : 'Completed';
         if (payload.phase === 'measure') {
           set['progress.completedIterations'] = payload.iteration;
           set['progress.totalIterations'] = payload.of;
@@ -95,7 +120,23 @@ async function start(jobId) {
     if (!finished) {
       finished = true;
       const cancelled = (await ComparisonJob.findById(job._id))?.cancelRequested;
-      await finish(job, cancelled ? { type: 'done', results: [], interrupted: { code: 'CANCELLED', message: 'Job cancelled by user (worker terminated)' } } : { type: 'fatal', error: { message: `Benchmark worker exited unexpectedly (code ${code})` } }, emit).catch(() => {});
+      await finish(
+        job,
+        cancelled
+          ? {
+              type: 'done',
+              results: [],
+              interrupted: {
+                code: 'CANCELLED',
+                message: 'Job cancelled by user (worker terminated)',
+              },
+            }
+          : {
+              type: 'fatal',
+              error: { message: `Benchmark worker exited unexpectedly (code ${code})` },
+            },
+        emit,
+      ).catch(() => {});
     }
     pump();
   });
@@ -106,11 +147,31 @@ async function finish(job, msg, emit) {
   const completed = results.filter((r) => r.status === 'Completed');
   const docs = completed.map((r) => {
     const p = job.protocols.find((x) => x.name === r.protocolName);
-    return { jobId: job._id, protocolId: p.protocolId, protocolName: r.protocolName, config: r.config, metrics: r.metrics, securityOutcome: r.securityOutcome ?? undefined, hardwareRequirement: r.hardwareRequirement, channelDependency: r.channelDependency, ...initialAssessments(r.protocolName) };
+    return {
+      jobId: job._id,
+      protocolId: p.protocolId,
+      protocolName: r.protocolName,
+      config: r.config,
+      metrics: r.metrics,
+      securityOutcome: r.securityOutcome ?? undefined,
+      hardwareRequirement: r.hardwareRequirement,
+      channelDependency: r.channelDependency,
+      ...initialAssessments(r.protocolName),
+    };
   });
   if (docs.length) await Result.insertMany(docs);
 
-  const envExtra = { 'environment.browser': msg.browserVersion ?? null, 'environment.mail': msg.mailInfo ? { provider: msg.mailInfo.provider, host: msg.mailInfo.host, tls: msg.mailInfo.tls, fallbackReason: msg.mailInfo.fallbackReason } : null };
+  const envExtra = {
+    'environment.browser': msg.browserVersion ?? null,
+    'environment.mail': msg.mailInfo
+      ? {
+          provider: msg.mailInfo.provider,
+          host: msg.mailInfo.host,
+          tls: msg.mailInfo.tls,
+          fallbackReason: msg.mailInfo.fallbackReason,
+        }
+      : null,
+  };
   const base = { finishedAt: new Date(), ...envExtra };
   const failedProtocols = results.filter((r) => r.status === 'Failed');
   let to;
@@ -130,11 +191,23 @@ async function finish(job, msg, emit) {
     to = 'Completed';
   }
   const set = { ...base, error, 'progress.phase': to.toLowerCase() };
-  if (to === 'Completed') Object.assign(set, { 'progress.percent': 100, 'progress.completedIterations': job.settings.iterations, 'progress.totalIterations': job.settings.iterations });
+  if (to === 'Completed')
+    Object.assign(set, {
+      'progress.percent': 100,
+      'progress.completedIterations': job.settings.iterations,
+      'progress.totalIterations': job.settings.iterations,
+    });
   const updated = await transition(job._id, 'Running', to, set);
   const payload = { status: to, error, resultCount: docs.length };
-  emit(to === 'Completed' ? 'job:completed' : to === 'Cancelled' ? 'job:cancelled' : 'job:failed', payload);
-  await audit(job.userId, `job.${to.toLowerCase()}`, { jobId: String(job._id), protocols: job.protocols.map((p) => p.name), error });
+  emit(
+    to === 'Completed' ? 'job:completed' : to === 'Cancelled' ? 'job:cancelled' : 'job:failed',
+    payload,
+  );
+  await audit(job.userId, `job.${to.toLowerCase()}`, {
+    jobId: String(job._id),
+    protocols: job.protocols.map((p) => p.name),
+    error,
+  });
   return updated;
 }
 
@@ -144,8 +217,12 @@ export async function cancelJob(job) {
   if (job.status === 'Pending') {
     const idx = queue.indexOf(id);
     if (idx >= 0) queue.splice(idx, 1);
-    const updated = await transition(id, 'Pending', 'Cancelled', { finishedAt: new Date(), cancelRequested: true });
-    if (updated) emitToUser(String(job.userId), 'job:cancelled', { jobId: id, status: 'Cancelled' });
+    const updated = await transition(id, 'Pending', 'Cancelled', {
+      finishedAt: new Date(),
+      cancelRequested: true,
+    });
+    if (updated)
+      emitToUser(String(job.userId), 'job:cancelled', { jobId: id, status: 'Cancelled' });
     return updated;
   }
   if (job.status === 'Running') {
@@ -163,8 +240,19 @@ export async function cancelJob(job) {
 
 /** On boot: jobs left Running by a previous process failed; Pending ones are queued again. */
 export async function recoverJobs() {
-  await ComparisonJob.updateMany({ status: 'Running' }, { $set: { status: 'Failed', error: 'Server restarted while the job was running', finishedAt: new Date() } });
-  const pending = await ComparisonJob.find({ status: 'Pending' }).sort({ createdAt: 1 }).select('_id');
+  await ComparisonJob.updateMany(
+    { status: 'Running' },
+    {
+      $set: {
+        status: 'Failed',
+        error: 'Server restarted while the job was running',
+        finishedAt: new Date(),
+      },
+    },
+  );
+  const pending = await ComparisonJob.find({ status: 'Pending' })
+    .sort({ createdAt: 1 })
+    .select('_id');
   pending.forEach((j) => enqueue(j._id));
 }
 

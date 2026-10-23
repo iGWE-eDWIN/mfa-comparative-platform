@@ -29,7 +29,13 @@ export class OobEmailModule extends ProtocolModule {
     hardwareRequirement: 'None',
     channelDependency: 'SMTP / email provider (delivery time depends on provider and network)',
     dependencies: ['node:crypto', 'nodemailer'],
-    implementationFiles: ['protocols/oobEmail/index.js', 'lib/crypto.js', 'services/mail/mailService.js', 'services/mail/providers.js', 'services/oobService.js'],
+    implementationFiles: [
+      'protocols/oobEmail/index.js',
+      'lib/crypto.js',
+      'services/mail/mailService.js',
+      'services/mail/providers.js',
+      'services/oobService.js',
+    ],
   };
 
   async initialize() {
@@ -77,7 +83,12 @@ export class OobEmailModule extends ProtocolModule {
     if (!this.config.sendEmail) return { sendNs: 0n, delivery: null };
     const start = process.hrtime.bigint();
     try {
-      const delivery = await this.ctx.mailer.sendOtp({ to: this.config.recipient, code, expiresInSeconds: this.config.expirySeconds, purpose: 'benchmark verification' });
+      const delivery = await this.ctx.mailer.sendOtp({
+        to: this.config.recipient,
+        code,
+        expiresInSeconds: this.config.expirySeconds,
+        purpose: 'benchmark verification',
+      });
       this.observations.delivered++;
       if (delivery.previewUrl) this.observations.lastPreviewUrl = delivery.previewUrl;
       return { sendNs: process.hrtime.bigint() - start, delivery };
@@ -128,7 +139,10 @@ export class OobEmailModule extends ProtocolModule {
       this.observations.attemptLimitReached++;
       return fail('attempts_exceeded', elapsed());
     }
-    const ok = safeEqual(hashCode(String(tx.artifact.code), ch.salt, this.ctx.keys.otpPepper), ch.codeHash);
+    const ok = safeEqual(
+      hashCode(String(tx.artifact.code), ch.salt, this.ctx.keys.otpPepper),
+      ch.codeHash,
+    );
     if (ok) ch.used = true;
     else ch.attempts++;
     const serverNs = elapsed();
@@ -137,7 +151,13 @@ export class OobEmailModule extends ProtocolModule {
 
   collectMetrics() {
     const { providerInfo, ...rest } = this.observations;
-    return { ...rest, tls: providerInfo?.tls ?? null, pooledTransport: providerInfo?.pooled ?? null, fallbackReason: providerInfo?.fallbackReason ?? null, outstandingChallenges: this.challenges?.size ?? 0 };
+    return {
+      ...rest,
+      tls: providerInfo?.tls ?? null,
+      pooledTransport: providerInfo?.pooled ?? null,
+      fallbackReason: providerInfo?.fallbackReason ?? null,
+      outstandingChallenges: this.challenges?.size ?? 0,
+    };
   }
 
   async reset() {

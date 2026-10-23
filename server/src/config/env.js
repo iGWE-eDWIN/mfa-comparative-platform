@@ -67,7 +67,9 @@ function load() {
   env.SECRETS_ENCRYPTION_KEY ??= '0'.repeat(63) + '1';
   env.OTP_HMAC_KEY ??= 'dev-only-otp-hmac-key-change-me-0123456789';
   env.COOKIE_SECURE ??= isProd;
-  env.clientOrigins = env.CLIENT_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean);
+  env.clientOrigins = env.CLIENT_ORIGINS.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
   return env;
 }
 

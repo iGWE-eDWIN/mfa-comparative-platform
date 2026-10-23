@@ -22,7 +22,11 @@ export class WebAuthnModule extends ProtocolModule {
   static schema = z.object({
     userVerification: z.enum(['required', 'preferred', 'discouraged']).default('preferred'),
     attestation: z.enum(['none', 'direct']).default('none'),
-    algorithm: z.coerce.number().int().refine((v) => [-7, -257, -8].includes(v), 'Supported: -7 (ES256), -257 (RS256), -8 (EdDSA)').default(-7),
+    algorithm: z.coerce
+      .number()
+      .int()
+      .refine((v) => [-7, -257, -8].includes(v), 'Supported: -7 (ES256), -257 (RS256), -8 (EdDSA)')
+      .default(-7),
     residentKey: z.enum(['required', 'preferred', 'discouraged']).default('preferred'),
     ceremonyTimeoutMs: z.coerce.number().int().min(1000).max(300000).default(60000),
     challengeTtlSeconds: z.coerce.number().int().min(10).max(600).default(120),
@@ -30,10 +34,19 @@ export class WebAuthnModule extends ProtocolModule {
   static metadata = {
     standard: 'W3C Web Authentication Level 3; FIDO Alliance CTAP2',
     factor: 'possession (+ inherence via user verification abstraction)',
-    hardwareRequirement: 'Optional/Required in practice (platform or roaming authenticator); here a software Virtual Authenticator',
+    hardwareRequirement:
+      'Optional/Required in practice (platform or roaming authenticator); here a software Virtual Authenticator',
     channelDependency: 'Platform/browser WebAuthn API',
-    dependencies: ['@simplewebauthn/server', '@simplewebauthn/browser', 'playwright-core (benchmark only)'],
-    implementationFiles: ['protocols/webauthn/index.js', 'services/webauthnService.js', 'lib/virtualAuthenticator.js'],
+    dependencies: [
+      '@simplewebauthn/server',
+      '@simplewebauthn/browser',
+      'playwright-core (benchmark only)',
+    ],
+    implementationFiles: [
+      'protocols/webauthn/index.js',
+      'services/webauthnService.js',
+      'lib/virtualAuthenticator.js',
+    ],
   };
 
   get rp() {
@@ -43,7 +56,9 @@ export class WebAuthnModule extends ProtocolModule {
   async initialize() {
     const start = process.hrtime.bigint();
     this.challenges = new Map();
-    this.session = await new VirtualAuthenticatorSession(await this.ctx.getBrowser()).open(this.rp.origin);
+    this.session = await new VirtualAuthenticatorSession(await this.ctx.getBrowser()).open(
+      this.rp.origin,
+    );
     this.userId = crypto.randomBytes(16);
     const options = await generateRegistrationOptions({
       rpName: this.rp.name,
@@ -53,7 +68,10 @@ export class WebAuthnModule extends ProtocolModule {
       attestationType: this.config.attestation,
       timeout: this.config.ceremonyTimeoutMs,
       supportedAlgorithmIDs: [this.config.algorithm],
-      authenticatorSelection: { residentKey: this.config.residentKey, userVerification: this.config.userVerification },
+      authenticatorSelection: {
+        residentKey: this.config.residentKey,
+        userVerification: this.config.userVerification,
+      },
     });
     const response = await this.session.register(options);
     const verifyStart = process.hrtime.bigint();
@@ -68,7 +86,12 @@ export class WebAuthnModule extends ProtocolModule {
     const registrationVerifyNs = process.hrtime.bigint() - verifyStart;
     if (!v.verified) throw new Error('WebAuthn registration could not be verified');
     const c = v.registrationInfo.credential;
-    this.credential = { id: c.id, publicKey: c.publicKey, counter: c.counter, transports: c.transports };
+    this.credential = {
+      id: c.id,
+      publicKey: c.publicKey,
+      counter: c.counter,
+      transports: c.transports,
+    };
     const enrolmentNs = process.hrtime.bigint() - start;
     this.observations = {
       authenticator: 'CDP virtual authenticator (ctap2, internal, resident key, UV)',
@@ -93,14 +116,21 @@ export class WebAuthnModule extends ProtocolModule {
       timeout: this.config.ceremonyTimeoutMs,
     });
     const challengeId = crypto.randomUUID();
-    this.challenges.set(challengeId, { challenge: optionsJSON.challenge, expiresAt: this.ctx.now() + this.config.challengeTtlSeconds * 1000 });
+    this.challenges.set(challengeId, {
+      challenge: optionsJSON.challenge,
+      expiresAt: this.ctx.now() + this.config.challengeTtlSeconds * 1000,
+    });
     const serverNs = process.hrtime.bigint() - start;
 
     const ceremonyStart = process.hrtime.bigint();
     await this.session.goto(options.origin ?? this.rp.origin);
     const out = await this.session.authenticate(optionsJSON);
     const ceremonyNs = process.hrtime.bigint() - ceremonyStart;
-    return { artifact: { challengeId, ...out }, serverNs, meta: { ceremonyNs, origin: this.session.currentOrigin } };
+    return {
+      artifact: { challengeId, ...out },
+      serverNs,
+      meta: { ceremonyNs, origin: this.session.currentOrigin },
+    };
   }
 
   async verify(tx) {
@@ -132,7 +162,11 @@ export class WebAuthnModule extends ProtocolModule {
       }
       this.credential.counter = v.authenticationInfo.newCounter;
       this.observations.lastSignCount = v.authenticationInfo.newCounter;
-      return { ok: true, serverNs, meta: { serverVerifyNs: serverNs, userVerified: v.authenticationInfo.userVerified } };
+      return {
+        ok: true,
+        serverNs,
+        meta: { serverVerifyNs: serverNs, userVerified: v.authenticationInfo.userVerified },
+      };
     } catch (err) {
       this.observations.verificationFailures++;
       return fail('verification_failed', elapsed(), { message: err.message });

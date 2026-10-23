@@ -14,13 +14,29 @@ async function owned(req) {
 /** FR12: record usability and integration observations on a result. */
 export async function updateAssessment(req, res) {
   const r = await owned(req);
-  if (req.body.integration) r.integrationAssessment = applyAssessmentEdit(r.integrationAssessment, req.body.integration, req.user.id);
-  if (req.body.usability) r.usabilityAssessment = applyAssessmentEdit(r.usabilityAssessment, req.body.usability, req.user.id);
+  if (req.body.integration)
+    r.integrationAssessment = applyAssessmentEdit(
+      r.integrationAssessment,
+      req.body.integration,
+      req.user.id,
+    );
+  if (req.body.usability)
+    r.usabilityAssessment = applyAssessmentEdit(
+      r.usabilityAssessment,
+      req.body.usability,
+      req.user.id,
+    );
   r.markModified('integrationAssessment');
   r.markModified('usabilityAssessment');
   await r.save();
-  await audit(req.user.id, 'result.assessment_updated', { resultId: String(r._id), protocol: r.protocolName });
-  res.json({ integrationAssessment: r.integrationAssessment, usabilityAssessment: r.usabilityAssessment });
+  await audit(req.user.id, 'result.assessment_updated', {
+    resultId: String(r._id),
+    protocol: r.protocolName,
+  });
+  res.json({
+    integrationAssessment: r.integrationAssessment,
+    usabilityAssessment: r.usabilityAssessment,
+  });
 }
 
 export function rubric(_req, res) {

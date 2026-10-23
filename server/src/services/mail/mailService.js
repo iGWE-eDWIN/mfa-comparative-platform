@@ -44,7 +44,12 @@ export class Mailer {
       greetingTimeout: 10000,
       socketTimeout: 15000,
     });
-    this.info = { ...built.info, requested: this.requested, fallbackReason: this.fallbackReason, pooled: this.pool };
+    this.info = {
+      ...built.info,
+      requested: this.requested,
+      fallbackReason: this.fallbackReason,
+      pooled: this.pool,
+    };
     return this.info;
   }
 
@@ -69,7 +74,8 @@ export class Mailer {
       text: `Your one-time ${purpose} code is ${code}.\nIt expires in ${minutes} minute(s) and can be used once.\nIf you did not request it, ignore this email.`,
       html: `<p>Your one-time ${purpose} code is:</p><p style="font-size:24px;font-weight:bold;letter-spacing:4px">${code}</p><p>It expires in ${minutes} minute(s) and can be used once.</p>`,
     });
-    const previewUrl = this.info.provider === 'ethereal' ? nodemailer.getTestMessageUrl(info) || null : null;
+    const previewUrl =
+      this.info.provider === 'ethereal' ? nodemailer.getTestMessageUrl(info) || null : null;
     return { messageId: info.messageId, previewUrl, accepted: info.accepted ?? [] };
   }
 

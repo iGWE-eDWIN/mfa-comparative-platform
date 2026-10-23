@@ -15,7 +15,9 @@ parentPort.on('message', (msg) => {
 });
 
 const needsMail = protocols.some((p) => p.name === 'OOB Email');
-const mailer = needsMail ? new Mailer({ provider: mailProvider, startSink: false, fallbackLocal: false }) : null;
+const mailer = needsMail
+  ? new Mailer({ provider: mailProvider, startSink: false, fallbackLocal: false })
+  : null;
 let browserPromise = null;
 const getBrowser = () => (browserPromise ??= launchBrowser());
 
@@ -30,7 +32,13 @@ const makeCtx = (clock = { offsetMs: 0 }) => ({
 const emit = (event, payload) => parentPort.postMessage({ type: 'event', event, payload });
 
 try {
-  const { results, interrupted } = await runBenchmark({ protocols, settings, makeCtx, emit, isCancelled: () => cancelled });
+  const { results, interrupted } = await runBenchmark({
+    protocols,
+    settings,
+    makeCtx,
+    emit,
+    isCancelled: () => cancelled,
+  });
   let browserVersion = null;
   if (browserPromise) {
     const b = await browserPromise;
@@ -45,7 +53,10 @@ try {
     interrupted: interrupted ? { code: interrupted.code, message: interrupted.message } : null,
   });
 } catch (err) {
-  parentPort.postMessage({ type: 'fatal', error: { message: err.message, code: err.code ?? null } });
+  parentPort.postMessage({
+    type: 'fatal',
+    error: { message: err.message, code: err.code ?? null },
+  });
 } finally {
   mailer?.close();
   if (browserPromise) await (await browserPromise.catch(() => null))?.close().catch(() => {});

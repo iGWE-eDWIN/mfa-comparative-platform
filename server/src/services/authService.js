@@ -39,7 +39,12 @@ export async function hashPassword(password) {
 
 export async function register({ username, email, password }, meta = {}) {
   const exists = await User.findOne({ $or: [{ username }, { email: email.toLowerCase() }] }).lean();
-  if (exists) throw new HttpError(409, 'An account with that username or email already exists', 'ACCOUNT_EXISTS');
+  if (exists)
+    throw new HttpError(
+      409,
+      'An account with that username or email already exists',
+      'ACCOUNT_EXISTS',
+    );
   const user = await User.create({ username, email, passwordHash: await hashPassword(password) });
   await audit(user._id, 'auth.registered', meta);
   return user;
@@ -55,11 +60,18 @@ export async function login({ identifier, password }, meta = {}) {
     await audit(null, 'auth.login_locked', { identifier: key, ...meta });
     throw new HttpError(429, 'Too many failed attempts. Try again later.', 'ACCOUNT_LOCKED');
   }
-  const user = await User.findOne({ $or: [{ username: identifier }, { email: key }] }).select('+passwordHash');
+  const user = await User.findOne({ $or: [{ username: identifier }, { email: key }] }).select(
+    '+passwordHash',
+  );
   const ok = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
   if (!user || !ok) {
     const f = recordFailure(key);
-    await audit(user?._id ?? null, 'auth.login_failed', { identifier: key, attempt: f.count, locked: Boolean(f.lockedUntil), ...meta });
+    await audit(user?._id ?? null, 'auth.login_failed', {
+      identifier: key,
+      attempt: f.count,
+      locked: Boolean(f.lockedUntil),
+      ...meta,
+    });
     throw new HttpError(401, 'Invalid username/email or password', 'INVALID_CREDENTIALS');
   }
   if (user.status !== 'active') {
@@ -67,17 +79,34 @@ export async function login({ identifier, password }, meta = {}) {
     throw new HttpError(403, 'This account is suspended', 'ACCOUNT_SUSPENDED');
   }
   failures.delete(key);
-  const factor = await Credential.findOne({ userId: user._id, isLoginFactor: true, status: 'active' }).lean();
-  await audit(user._id, factor ? 'auth.password_verified_mfa_required' : 'auth.login_succeeded', { ...meta, method: factor?.protocol ?? 'password' });
-  return { user, mfa: factor ? { method: factor.protocol, credentialId: String(factor._id) } : null };
+  const factor = await Credential.findOne({
+    userId: user._id,
+    isLoginFactor: true,
+    status: 'active',
+  }).lean();
+  await audit(user._id, factor ? 'auth.password_verified_mfa_required' : 'auth.login_succeeded', {
+    ...meta,
+    method: factor?.protocol ?? 'password',
+  });
+  return {
+    user,
+    mfa: factor ? { method: factor.protocol, credentialId: String(factor._id) } : null,
+  };
 }
 
 export function issueSessionToken(user) {
-  return jwt.sign({ sub: String(user._id), role: user.role, typ: 'session' }, env.JWT_SECRET, { expiresIn: env.JWT_TTL_SECONDS, algorithm: 'HS256' });
+  return jwt.sign({ sub: String(user._id), role: user.role, typ: 'session' }, env.JWT_SECRET, {
+    expiresIn: env.JWT_TTL_SECONDS,
+    algorithm: 'HS256',
+  });
 }
 
 export function issueMfaToken(user, mfa) {
-  return jwt.sign({ sub: String(user._id), typ: 'mfa', method: mfa.method, cid: mfa.credentialId }, env.JWT_SECRET, { expiresIn: 300, algorithm: 'HS256' });
+  return jwt.sign(
+    { sub: String(user._id), typ: 'mfa', method: mfa.method, cid: mfa.credentialId },
+    env.JWT_SECRET,
+    { expiresIn: 300, algorithm: 'HS256' },
+  );
 }
 
 function decode(token, typ) {

@@ -34,7 +34,10 @@ export function createApp() {
   // CORS allow-list; credentials are needed for the session cookie.
   app.use(
     cors({
-      origin: (origin, cb) => (!origin || env.clientOrigins.includes(origin) ? cb(null, true) : cb(new HttpError(403, 'Origin not allowed', 'CORS'))),
+      origin: (origin, cb) =>
+        !origin || env.clientOrigins.includes(origin)
+          ? cb(null, true)
+          : cb(new HttpError(403, 'Origin not allowed', 'CORS')),
       credentials: true,
     }),
   );
@@ -42,8 +45,14 @@ export function createApp() {
   app.use(cookieParser());
   // State-changing requests must be JSON: a cross-site HTML form cannot send application/json without CORS preflight.
   app.use('/api', (req, _res, next) => {
-    if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method) && req.headers['content-length'] !== '0' && req.is('application/json') === false) {
-      return next(new HttpError(415, 'Content-Type must be application/json', 'UNSUPPORTED_MEDIA_TYPE'));
+    if (
+      ['POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method) &&
+      req.headers['content-length'] !== '0' &&
+      req.is('application/json') === false
+    ) {
+      return next(
+        new HttpError(415, 'Content-Type must be application/json', 'UNSUPPORTED_MEDIA_TYPE'),
+      );
     }
     next();
   });
@@ -52,7 +61,9 @@ export function createApp() {
 
   if (env.SERVE_CLIENT && fs.existsSync(CLIENT_DIST)) {
     app.use(express.static(CLIENT_DIST, { index: false, maxAge: '1h' }));
-    app.get(/^(?!\/api|\/socket\.io).*/, (_req, res) => res.sendFile(path.join(CLIENT_DIST, 'index.html')));
+    app.get(/^(?!\/api|\/socket\.io).*/, (_req, res) =>
+      res.sendFile(path.join(CLIENT_DIST, 'index.html')),
+    );
   }
   app.use(errorHandler);
   return app;

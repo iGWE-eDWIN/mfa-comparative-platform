@@ -1,3 +1,4 @@
+/* global window -- functions passed to page.evaluate() run in the browser */
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { chromium } from 'playwright-core';
@@ -5,14 +6,23 @@ import { env } from '../config/env.js';
 
 const require = createRequire(import.meta.url);
 const SWA_BUNDLE = fs.readFileSync(
-  require.resolve('@simplewebauthn/browser').replace(/script[\\/]index\.js$/, 'dist/bundle/index.umd.min.js'),
+  require
+    .resolve('@simplewebauthn/browser')
+    .replace(/script[\\/]index\.js$/, 'dist/bundle/index.umd.min.js'),
   'utf8',
 );
 const HARNESS_PATH = '/__mfa_webauthn/harness.html';
 const HARNESS_HTML = `<!doctype html><html><head><meta charset="utf-8"><title>WebAuthn harness</title>
 <script src="/__mfa_webauthn/swa.js"></script></head><body>WebAuthn ceremony harness</body></html>`;
 
-const SYSTEM_BROWSERS = ['/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'];
+const SYSTEM_BROWSERS = [
+  '/usr/bin/chromium',
+  '/usr/bin/chromium-browser',
+  '/usr/bin/google-chrome',
+  '/usr/bin/google-chrome-stable',
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+];
 
 /** Resolve a Chromium executable: CHROMIUM_PATH → Playwright-managed Chromium → system Chrome/Chromium. */
 export function resolveChromium() {
@@ -29,7 +39,11 @@ export function resolveChromium() {
 }
 
 export async function launchBrowser() {
-  return chromium.launch({ headless: true, executablePath: resolveChromium(), args: ['--no-first-run', '--disable-gpu'] });
+  return chromium.launch({
+    headless: true,
+    executablePath: resolveChromium(),
+    args: ['--no-first-run', '--disable-gpu'],
+  });
 }
 
 /**
@@ -57,13 +71,20 @@ export class VirtualAuthenticatorSession {
     this.context = await this.browser.newContext();
     await this.context.route('**/__mfa_webauthn/**', (route) => {
       const url = new URL(route.request().url());
-      if (url.pathname.endsWith('/swa.js')) return route.fulfill({ status: 200, contentType: 'application/javascript', body: SWA_BUNDLE });
+      if (url.pathname.endsWith('/swa.js'))
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/javascript',
+          body: SWA_BUNDLE,
+        });
       return route.fulfill({ status: 200, contentType: 'text/html', body: HARNESS_HTML });
     });
     this.page = await this.context.newPage();
     this.cdp = await this.context.newCDPSession(this.page);
     await this.cdp.send('WebAuthn.enable');
-    const { authenticatorId } = await this.cdp.send('WebAuthn.addVirtualAuthenticator', { options: this.authenticatorOptions });
+    const { authenticatorId } = await this.cdp.send('WebAuthn.addVirtualAuthenticator', {
+      options: this.authenticatorOptions,
+    });
     this.authenticatorId = authenticatorId;
     await this.goto(origin);
     return this;
@@ -79,14 +100,19 @@ export class VirtualAuthenticatorSession {
 
   /** navigator.credentials.create() via @simplewebauthn/browser. */
   register(optionsJSON) {
-    return this.page.evaluate((o) => window.SimpleWebAuthnBrowser.startRegistration({ optionsJSON: o }), optionsJSON);
+    return this.page.evaluate(
+      (o) => window.SimpleWebAuthnBrowser.startRegistration({ optionsJSON: o }),
+      optionsJSON,
+    );
   }
 
   /** navigator.credentials.get() via @simplewebauthn/browser. Errors are returned, not thrown. */
   authenticate(optionsJSON) {
     return this.page.evaluate(async (o) => {
       try {
-        return { response: await window.SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: o }) };
+        return {
+          response: await window.SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: o }),
+        };
       } catch (e) {
         return { error: { name: e.name, code: e.code ?? null, message: e.message } };
       }
@@ -94,7 +120,9 @@ export class VirtualAuthenticatorSession {
   }
 
   async credentials() {
-    const { credentials } = await this.cdp.send('WebAuthn.getCredentials', { authenticatorId: this.authenticatorId });
+    const { credentials } = await this.cdp.send('WebAuthn.getCredentials', {
+      authenticatorId: this.authenticatorId,
+    });
     return credentials;
   }
 

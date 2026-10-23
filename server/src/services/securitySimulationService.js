@@ -31,7 +31,13 @@ export async function runSecuritySimulations(protocol, config, makeCtx) {
     await m.initialize();
     return { m, clock };
   };
-  const scenarios = { phishingTest: phishing, replayTest: replay, bruteForceTest: bruteForce, expiredCodeTest: expired, desynchronisationObservation: desync };
+  const scenarios = {
+    phishingTest: phishing,
+    replayTest: replay,
+    bruteForceTest: bruteForce,
+    expiredCodeTest: expired,
+    desynchronisationObservation: desync,
+  };
   const out = { securityNotes: [] };
   for (const [key, fn] of Object.entries(scenarios)) {
     let instance = null;
@@ -46,8 +52,14 @@ export async function runSecuritySimulations(protocol, config, makeCtx) {
   out.securityNotes.push(
     'Controlled simulations of defined attack scenarios against this implementation; not penetration testing and not a discovery of unknown vulnerabilities.',
   );
-  if (protocol === 'WebAuthn') out.securityNotes.push('Authenticator is a CDP software Virtual Authenticator; hardware key behaviour is outside scope.');
-  if (protocol === 'OOB Email') out.securityNotes.push('Email-account compromise and SMTP-hop interception (Chapter 2 §2.4.3.2) are not simulated; real providers are forced to use TLS (requireTLS).');
+  if (protocol === 'WebAuthn')
+    out.securityNotes.push(
+      'Authenticator is a CDP software Virtual Authenticator; hardware key behaviour is outside scope.',
+    );
+  if (protocol === 'OOB Email')
+    out.securityNotes.push(
+      'Email-account compromise and SMTP-hop interception (Chapter 2 §2.4.3.2) are not simulated; real providers are forced to use TLS (requireTLS).',
+    );
   return out;
 }
 
@@ -66,8 +78,18 @@ async function phishing(protocol, config, fresh) {
         : 'Origin binding did not behave as expected; see evidence.',
       {
         legitimateOrigin: { origin: m.rp.origin, accepted: legit.ok },
-        lookalikeOrigin: { origin: 'https://phish.example', accepted: lookalike.ok, rejectedBy: lookalike.reason === 'ceremony_rejected' ? 'browser' : 'server', detail: lookalike.meta?.browserError ?? lookalike.meta },
-        sameHostDifferentOrigin: { origin: otherOrigin, accepted: sameHost.ok, rejectedBy: sameHost.reason === 'ceremony_rejected' ? 'browser' : 'server', detail: sameHost.meta },
+        lookalikeOrigin: {
+          origin: 'https://phish.example',
+          accepted: lookalike.ok,
+          rejectedBy: lookalike.reason === 'ceremony_rejected' ? 'browser' : 'server',
+          detail: lookalike.meta?.browserError ?? lookalike.meta,
+        },
+        sameHostDifferentOrigin: {
+          origin: otherOrigin,
+          accepted: sameHost.ok,
+          rejectedBy: sameHost.reason === 'ceremony_rejected' ? 'browser' : 'server',
+          detail: sameHost.meta,
+        },
       },
     );
   }
@@ -89,7 +111,11 @@ async function replay(protocol, config, fresh) {
   const tx = await m.execute();
   const first = await m.verify(tx);
   const second = await m.verify(tx);
-  const evidence = { firstUseAccepted: first.ok, replayAccepted: second.ok, replayRejectionReason: second.reason ?? null };
+  const evidence = {
+    firstUseAccepted: first.ok,
+    replayAccepted: second.ok,
+    replayRejectionReason: second.reason ?? null,
+  };
   if (protocol === 'TOTP') {
     // Same scenario with step tracking disabled shows what the bare RFC 6238 algorithm allows.
     const { m: bare } = await fresh({ preventReuse: false });
@@ -104,11 +130,13 @@ async function replay(protocol, config, fresh) {
     HOTP: 'the server advanced its counter past the matched value, so the same code no longer falls inside the look-ahead window',
     TOTP: 'the server records the last accepted time step (RFC 6238 §5.2) and refuses any step not newer than it',
     'OOB Email': 'the code was marked used on first successful verification',
-    WebAuthn: 'the challenge was consumed on first use, so the signed assertion refers to a challenge the server no longer accepts',
+    WebAuthn:
+      'the challenge was consumed on first use, so the signed assertion refers to a challenge the server no longer accepts',
   }[protocol];
   let explanation = resisted ? `Replay rejected: ${why}.` : 'Replay was accepted; see evidence.';
   if (protocol === 'TOTP' && evidence.withoutStepTracking.replayAccepted) {
-    explanation += ' With step tracking disabled the identical code was accepted twice, so replay resistance comes from server state, not from the algorithm itself.';
+    explanation +=
+      ' With step tracking disabled the identical code was accepted twice, so replay resistance comes from server state, not from the algorithm itself.';
   }
   return outcome(resisted ? 'pass' : 'fail', explanation, evidence);
 }
@@ -140,11 +168,17 @@ async function bruteForce(protocol, config, fresh) {
   for (let i = 1; i <= maxAttempts + 2; i++) {
     const r = await m.verify({ ...tx, artifact: { ...tx.artifact, code: wrong } });
     reasons.push(r.reason);
-    if (attemptsUntilBlocked === null && ['locked', 'attempts_exceeded'].includes(r.reason)) attemptsUntilBlocked = i;
+    if (attemptsUntilBlocked === null && ['locked', 'attempts_exceeded'].includes(r.reason))
+      attemptsUntilBlocked = i;
   }
   // After the limit, even the correct code must be refused.
   const correctAfter = await m.verify(tx);
-  const candidates = protocol === 'HOTP' ? config.lookAheadWindow + 1 : protocol === 'TOTP' ? 2 * config.window + 1 : 1;
+  const candidates =
+    protocol === 'HOTP'
+      ? config.lookAheadWindow + 1
+      : protocol === 'TOTP'
+        ? 2 * config.window + 1
+        : 1;
   const successProbability = Math.min(1, (maxAttempts * candidates) / 10 ** digits);
   const resisted = !correctAfter.ok && attemptsUntilBlocked !== null;
   return outcome(
@@ -152,7 +186,14 @@ async function bruteForce(protocol, config, fresh) {
     resisted
       ? `After ${maxAttempts} wrong guesses the ${protocol === 'OOB Email' ? 'challenge was invalidated' : 'credential was locked'}, and the correct code was refused afterwards. An online guesser has at most ${maxAttempts} tries × ${candidates} acceptable value(s) out of 10^${digits}, a success probability of about ${successProbability.toExponential(2)} per lockout period.`
       : 'Guessing was not limited as configured; see evidence.',
-    { maxAttempts, attemptsUntilBlocked, rejectionReasons: reasons, correctCodeAcceptedAfterLimit: correctAfter.ok, acceptableValuesPerAttempt: candidates, successProbability },
+    {
+      maxAttempts,
+      attemptsUntilBlocked,
+      rejectionReasons: reasons,
+      correctCodeAcceptedAfterLimit: correctAfter.ok,
+      acceptableValuesPerAttempt: candidates,
+      successProbability,
+    },
   );
 }
 
@@ -164,8 +205,15 @@ async function expired(protocol, config, fresh) {
     const r = await m.verify(tx);
     return outcome(
       r.ok ? 'fail' : 'pass',
-      r.ok ? 'An expired code was accepted.' : `A code submitted ${config.expirySeconds + 1} s after issue (expiry ${config.expirySeconds} s) was rejected (${r.reason}).`,
-      { expirySeconds: config.expirySeconds, submittedAfterSeconds: config.expirySeconds + 1, accepted: r.ok, reason: r.reason ?? null },
+      r.ok
+        ? 'An expired code was accepted.'
+        : `A code submitted ${config.expirySeconds + 1} s after issue (expiry ${config.expirySeconds} s) was rejected (${r.reason}).`,
+      {
+        expirySeconds: config.expirySeconds,
+        submittedAfterSeconds: config.expirySeconds + 1,
+        accepted: r.ok,
+        reason: r.reason ?? null,
+      },
     );
   }
   if (protocol === 'TOTP') {
@@ -175,7 +223,9 @@ async function expired(protocol, config, fresh) {
     const r = await m.verify(tx);
     return outcome(
       r.ok ? 'fail' : 'pass',
-      r.ok ? 'A stale TOTP code was accepted.' : `A code used ${lateBy} s after generation (beyond ±${config.window} step(s) of ${config.timeStep} s) was rejected.`,
+      r.ok
+        ? 'A stale TOTP code was accepted.'
+        : `A code used ${lateBy} s after generation (beyond ±${config.window} step(s) of ${config.timeStep} s) was rejected.`,
       { lateBySeconds: lateBy, accepted: r.ok },
     );
   }
@@ -185,7 +235,9 @@ async function expired(protocol, config, fresh) {
     const r = await m.verify(tx);
     return outcome(
       r.ok ? 'fail' : 'pass',
-      r.ok ? 'An assertion for an expired challenge was accepted.' : `An assertion returned ${config.challengeTtlSeconds + 1} s after the challenge was issued (TTL ${config.challengeTtlSeconds} s) was rejected (${r.reason}).`,
+      r.ok
+        ? 'An assertion for an expired challenge was accepted.'
+        : `An assertion returned ${config.challengeTtlSeconds + 1} s after the challenge was issued (TTL ${config.challengeTtlSeconds} s) was rejected (${r.reason}).`,
       { challengeTtlSeconds: config.challengeTtlSeconds, accepted: r.ok, reason: r.reason ?? null },
     );
   }
@@ -212,18 +264,35 @@ async function desync(protocol, config, fresh) {
     return outcome(
       asDesigned ? 'pass' : 'fail',
       `A token ${W} presses ahead was accepted and the server resynchronised (counter → ${inside.meta?.serverCounter}); a token ${W + 1} presses ahead fell outside the look-ahead window and was rejected. Counter desynchronisation beyond the window needs manual resynchronisation (Chapter 2 §2.4.1.3).`,
-      { lookAheadWindow: W, driftInsideWindow: { drift: W, accepted: inside.ok, serverCounterAfter: inside.meta?.serverCounter ?? null }, driftOutsideWindow: { drift: W + 1, accepted: outside.ok } },
+      {
+        lookAheadWindow: W,
+        driftInsideWindow: {
+          drift: W,
+          accepted: inside.ok,
+          serverCounterAfter: inside.meta?.serverCounter ?? null,
+        },
+        driftOutsideWindow: { drift: W + 1, accepted: outside.ok },
+      },
     );
   }
   if (protocol === 'TOTP') {
     const step = config.timeStep;
     const results = {};
-    for (const skew of [-(config.window * step), config.window * step, (config.window + 1) * step, -(config.window + 1) * step]) {
+    for (const skew of [
+      -(config.window * step),
+      config.window * step,
+      (config.window + 1) * step,
+      -(config.window + 1) * step,
+    ]) {
       const { m } = await fresh({ clockSkewSeconds: 0 });
       results[`${skew}s`] = (await m.verify(await m.execute({ clockSkewSeconds: skew }))).ok;
       await m.reset();
     }
-    const asDesigned = results[`${config.window * step}s`] && results[`${-(config.window * step)}s`] && !results[`${(config.window + 1) * step}s`] && !results[`${-(config.window + 1) * step}s`];
+    const asDesigned =
+      results[`${config.window * step}s`] &&
+      results[`${-(config.window * step)}s`] &&
+      !results[`${(config.window + 1) * step}s`] &&
+      !results[`${-(config.window + 1) * step}s`];
     return outcome(
       asDesigned ? 'pass' : 'fail',
       `Clock drift of up to ±${config.window * step} s (±${config.window} step) was tolerated; drift of ±${(config.window + 1) * step} s was rejected. The validation window trades clock tolerance against how long a code stays usable.`,
@@ -231,7 +300,15 @@ async function desync(protocol, config, fresh) {
     );
   }
   if (protocol === 'OOB Email') {
-    return outcome('not-applicable', 'No shared counter or clock: each code is generated by the server per transaction and governed only by its expiry timestamp.', {});
+    return outcome(
+      'not-applicable',
+      'No shared counter or clock: each code is generated by the server per transaction and governed only by its expiry timestamp.',
+      {},
+    );
   }
-  return outcome('not-applicable', 'Challenge-response with a fresh server challenge per ceremony: no counter or clock must agree. The signature counter is used only for clone detection.', {});
+  return outcome(
+    'not-applicable',
+    'Challenge-response with a fresh server challenge per ceremony: no counter or clock must agree. The signature counter is used only for clone detection.',
+    {},
+  );
 }

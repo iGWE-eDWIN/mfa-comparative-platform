@@ -11,12 +11,25 @@ import { measureIntegration } from '../src/services/assessmentService.js';
  */
 export async function seed({ log = console.log } = {}) {
   const accounts = [
-    { username: process.env.SEED_ADMIN_USERNAME ?? 'admin', email: process.env.SEED_ADMIN_EMAIL ?? 'admin@mfa-platform.test', password: process.env.SEED_ADMIN_PASSWORD, role: 'admin' },
-    { username: process.env.SEED_DEMO_USERNAME ?? 'demo', email: process.env.SEED_DEMO_EMAIL ?? 'demo@mfa-platform.test', password: process.env.SEED_DEMO_PASSWORD, role: 'user' },
+    {
+      username: process.env.SEED_ADMIN_USERNAME ?? 'admin',
+      email: process.env.SEED_ADMIN_EMAIL ?? 'admin@mfa-platform.test',
+      password: process.env.SEED_ADMIN_PASSWORD,
+      role: 'admin',
+    },
+    {
+      username: process.env.SEED_DEMO_USERNAME ?? 'demo',
+      email: process.env.SEED_DEMO_EMAIL ?? 'demo@mfa-platform.test',
+      password: process.env.SEED_DEMO_PASSWORD,
+      role: 'user',
+    },
   ];
   for (const a of accounts) {
     if (!a.password) {
-      if (env.NODE_ENV === 'production') throw new Error(`Set SEED_${a.role === 'admin' ? 'ADMIN' : 'DEMO'}_PASSWORD for production seeding`);
+      if (env.NODE_ENV === 'production')
+        throw new Error(
+          `Set SEED_${a.role === 'admin' ? 'ADMIN' : 'DEMO'}_PASSWORD for production seeding`,
+        );
       a.password = a.role === 'admin' ? 'AdminPass#2026' : 'DemoPass#2026';
     }
     const existing = await User.findOne({ username: a.username });
@@ -24,8 +37,15 @@ export async function seed({ log = console.log } = {}) {
       log(`= user ${a.username} exists (${existing.role})`);
       continue;
     }
-    await User.create({ username: a.username, email: a.email, role: a.role, passwordHash: await hashPassword(a.password) });
-    log(`+ user ${a.username} (${a.role}) password: ${env.NODE_ENV === 'production' ? '[from env]' : a.password}`);
+    await User.create({
+      username: a.username,
+      email: a.email,
+      role: a.role,
+      passwordHash: await hashPassword(a.password),
+    });
+    log(
+      `+ user ${a.username} (${a.role}) password: ${env.NODE_ENV === 'production' ? '[from env]' : a.password}`,
+    );
   }
   for (const [name, M] of Object.entries(REGISTRY)) {
     const measured = measureIntegration(name);
@@ -35,11 +55,26 @@ export async function seed({ log = console.log } = {}) {
         $set: {
           version: M.version,
           type: M.type,
-          implementation: { module: M.name, files: M.metadata.implementationFiles, dependencies: M.metadata.dependencies, linesOfCode: measured.linesOfCode, interface: ['configure', 'initialize', 'execute', 'verify', 'collectMetrics', 'reset'] },
-          metadata: { standard: M.metadata.standard, factor: M.metadata.factor, hardwareRequirement: M.metadata.hardwareRequirement, channelDependency: M.metadata.channelDependency },
+          implementation: {
+            module: M.name,
+            files: M.metadata.implementationFiles,
+            dependencies: M.metadata.dependencies,
+            linesOfCode: measured.linesOfCode,
+            interface: ['configure', 'initialize', 'execute', 'verify', 'collectMetrics', 'reset'],
+          },
+          metadata: {
+            standard: M.metadata.standard,
+            factor: M.metadata.factor,
+            hardwareRequirement: M.metadata.hardwareRequirement,
+            channelDependency: M.metadata.channelDependency,
+          },
         },
         // Administrators may have tuned defaults; only set them the first time.
-        $setOnInsert: { name, status: 'active', 'defaultConfig.parameters': defaultParameters(name) },
+        $setOnInsert: {
+          name,
+          status: 'active',
+          'defaultConfig.parameters': defaultParameters(name),
+        },
       },
       { upsert: true },
     );
