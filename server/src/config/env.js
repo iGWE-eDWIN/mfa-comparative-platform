@@ -57,8 +57,13 @@ const schema = z.object({
 
 /** @typedef {z.infer<typeof schema>} Env */
 
+/** Empty values (e.g. `JWT_SECRET=` copied from .env.example) mean "not set". */
+export function readEnv(source = process.env) {
+  return Object.fromEntries(Object.entries(source).filter(([, v]) => v !== ''));
+}
+
 function load() {
-  const parsed = schema.safeParse(process.env);
+  const parsed = schema.safeParse(readEnv());
   if (!parsed.success) {
     const msg = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
     throw new Error(`Invalid environment configuration: ${msg}`);
@@ -71,6 +76,7 @@ function load() {
     }
   }
   // Development/test defaults are deterministic per process start but never used in production.
+  env.usingDevSecrets = !env.JWT_SECRET || !env.SECRETS_ENCRYPTION_KEY || !env.OTP_HMAC_KEY;
   env.JWT_SECRET ??= 'dev-only-jwt-secret-change-me-0123456789abcdef';
   env.SECRETS_ENCRYPTION_KEY ??= '0'.repeat(63) + '1';
   env.OTP_HMAC_KEY ??= 'dev-only-otp-hmac-key-change-me-0123456789';

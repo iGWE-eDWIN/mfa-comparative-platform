@@ -107,3 +107,10 @@ describe('Environment metadata and literature table', () => {
     ]);
   });
 });
+
+describe('Environment configuration', () => {
+  it('treats empty values from .env.example as unset', async () => {
+    const { readEnv } = await import('../../src/config/env.js');
+    expect(readEnv({ JWT_SECRET: '', PORT: '4000', OTP_HMAC_KEY: '' })).toEqual({ PORT: '4000' });
+  });
+});
