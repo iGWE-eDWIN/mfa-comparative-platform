@@ -1,0 +1,11 @@
+node_modules/
+.env
+*.local
+dist/
+coverage/
+.mongo-data/
+server/.data/
+playwright-report/
+test-results/
+*.log
+.DS_Store

@@ -1,0 +1,33 @@
+{
+  "name": "mfa-comparative-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A Web-Based Comparative Platform for Benchmarking MFA Algorithms and Protocols (HOTP, TOTP, OOB Email, WebAuthn)",
+  "type": "module",
+  "workspaces": ["server", "client"],
+  "engines": { "node": ">=20.11" },
+  "scripts": {
+    "dev:db": "node scripts/dev-mongo.mjs",
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    "dev:all": "node scripts/dev-all.mjs",
+    "seed": "npm run seed -w server",
+    "build": "npm run build -w client",
+    "start": "npm run start -w server",
+    "test": "npm test -w server && npm test -w client",
+    "test:e2e": "npm run test:e2e -w server",
+    "coverage": "npm run coverage -w server",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "campaign": "node scripts/campaign.mjs",
+    "browsers": "npx -w server playwright install chromium"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2"
+  }
+}

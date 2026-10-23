@@ -1,0 +1,7 @@
+node_modules
+dist
+coverage
+docs/source
+docs/text
+docs/results
+package-lock.json
