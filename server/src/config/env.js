@@ -1,4 +1,12 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
+
+// Load the repository-root .env (Node >= 20.12). Variables already set in the environment win.
+// Tests never read .env so that a developer's settings cannot change test outcomes.
+const ROOT_ENV = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../.env');
+if (process.env.NODE_ENV !== 'test' && fs.existsSync(ROOT_ENV)) process.loadEnvFile(ROOT_ENV);
 
 /**
  * Environment configuration, validated once at start-up so that a misconfigured

@@ -1,0 +1,318 @@
+openapi: 3.1.0
+info:
+  title: MFA Comparative Platform API
+  version: 1.0.0
+  description: |
+    REST API of the web-based comparative platform for HOTP, TOTP, OOB Email and FIDO2/WebAuthn.
+    Authentication uses an httpOnly, SameSite=Strict session cookie (`mfa_session`). State-changing
+    requests must send `Content-Type: application/json`. Errors use one envelope:
+    `{ "error": { "message", "code", "details?" } }`.
+    Real-time job events are delivered over Socket.IO (same cookie) — see `x-socket-events`.
+servers:
+  - url: http://localhost:4000/api
+  - url: http://localhost:5173/api
+    description: Vite dev proxy
+security:
+  - session: []
+tags:
+  - { name: system }
+  - { name: auth, description: 'FR1' }
+  - { name: jobs, description: 'FR2, FR3, FR5, FR8, FR9, FR10' }
+  - { name: results, description: 'FR12' }
+  - { name: simulator, description: 'FR4 single-flow simulators' }
+  - { name: credentials }
+  - { name: admin, description: 'Administrator (users, protocols, logs)' }
+
+components:
+  securitySchemes:
+    session: { type: apiKey, in: cookie, name: mfa_session }
+    mfaPending: { type: apiKey, in: cookie, name: mfa_pending, description: '5-minute second-factor token issued by /auth/login' }
+  responses:
+    Error:
+      description: Error envelope
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          required: [message]
+          properties:
+            message: { type: string }
+            code: { type: string, examples: [VALIDATION_ERROR, UNAUTHENTICATED, FORBIDDEN, NOT_FOUND, RATE_LIMITED, ACCOUNT_LOCKED, RESEND_COOLDOWN] }
+            details: { type: array, items: { type: object, properties: { path: { type: string }, message: { type: string } } } }
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        username: { type: string }
+        email: { type: string, format: email }
+        role: { type: string, enum: [user, admin] }
+        status: { type: string, enum: [active, suspended] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    ProtocolName: { type: string, enum: [HOTP, TOTP, OOB Email, WebAuthn] }
+    Protocol:
+      type: object
+      description: protocols collection (Chapter 3 §3.9.2)
+      properties:
+        _id: { type: string }
+        name: { $ref: '#/components/schemas/ProtocolName' }
+        version: { type: string }
+        type: { type: string }
+        defaultConfig:
+          type: object
+          properties:
+            parameters:
+              type: array
+              items: { type: object, properties: { name: { type: string }, value: {}, type: { type: string } } }
+        implementation: { type: object }
+        metadata: { type: object }
+        status: { type: string, enum: [active, disabled] }
+    JobCreate:
+      type: object
+      required: [protocols, iterations]
+      properties:
+        protocols:
+          type: array
+          minItems: 1
+          maxItems: 4
+          items:
+            type: object
+            required: [name]
+            properties:
+              name: { $ref: '#/components/schemas/ProtocolName' }
+              config:
+                type: object
+                description: |
+                  Protocol parameters (merged over protocols.defaultConfig, validated by the module schema).
+                  HOTP: digits, algorithm, lookAheadWindow, counterDrift, maxAttempts.
+                  TOTP: digits, algorithm, timeStep, window, clockSkewSeconds, preventReuse, advanceClockPerIteration, maxAttempts.
+                  OOB Email: codeDigits, expirySeconds, maxAttempts, resendCooldownSeconds, sendEmail, recipient.
+                  WebAuthn: userVerification, attestation, algorithm (-7/-257/-8), residentKey, ceremonyTimeoutMs, challengeTtlSeconds.
+        iterations: { type: integer, minimum: 1, maximum: 10000 }
+        warmupIterations: { type: integer, minimum: 0, maximum: 1000, default: 10 }
+        timeoutMs: { type: integer, minimum: 1000, default: 600000 }
+        operationTimeoutMs: { type: integer, minimum: 500, maximum: 120000, default: 15000 }
+        runSecuritySimulations: { type: boolean, default: true }
+        label: { type: string, maxLength: 100 }
+    Job:
+      type: object
+      description: comparison_jobs collection
+      properties:
+        _id: { type: string }
+        userId: { type: string }
+        protocols:
+          type: array
+          items: { type: object, properties: { protocolId: { type: string }, name: { type: string }, config: { type: object }, status: { type: string } } }
+        settings: { type: object }
+        status: { type: string, enum: [Pending, Running, Completed, Failed, Cancelled] }
+        progress: { type: object, properties: { percent: { type: number }, currentProtocol: { type: string }, phase: { type: string }, completedIterations: { type: integer }, totalIterations: { type: integer } } }
+        environment: { type: object, description: 'Node/V8/OpenSSL, OS, CPU, memory, library versions, browser, mail provider and fallback' }
+        error: { type: [string, 'null'] }
+        cancelRequested: { type: boolean }
+        startedAt: { type: string, format: date-time }
+        finishedAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+    Summary:
+      type: object
+      properties: { n: { type: integer }, mean: { type: number }, median: { type: number }, p95: { type: number }, p99: { type: number }, min: { type: number }, max: { type: number }, stdDev: { type: number } }
+    TestOutcome:
+      type: object
+      properties:
+        status: { type: string, enum: [pass, fail, not-applicable, error] }
+        explanation: { type: string }
+        evidence: { type: object }
+    Result:
+      type: object
+      description: results collection (one per protocol per job). Times in milliseconds.
+      properties:
+        _id: { type: string }
+        jobId: { type: string }
+        protocolId: { type: string }
+        protocolName: { type: string }
+        config: { type: object }
+        metrics:
+          type: object
+          properties:
+            processingTime: { $ref: '#/components/schemas/Summary' }
+            latency: { $ref: '#/components/schemas/Summary' }
+            throughput: { type: object, properties: { opsPerSec: { type: number }, successfulOps: { type: integer }, iterations: { type: integer }, successPerIteration: { type: number }, measuredWallMs: { type: number } } }
+            errorCount: { type: integer }
+            errorRate: { type: number }
+            attempted: { type: integer }
+            resources: { type: object, properties: { cpuUserMs: { type: number }, cpuSystemMs: { type: number }, cpuTotalMs: { type: number }, cpuPerOpUs: { type: number }, heapDeltaKB: { type: number }, rssDeltaKB: { type: number }, eventLoopUtilisation: { type: number }, cpuSource: { type: string } } }
+            serverVerifyTime: { $ref: '#/components/schemas/Summary' }
+            channel: { type: object, description: 'OOB: provider, tls, sendTime; WebAuthn: ceremonyTime' }
+            enrolmentTimeMs: { type: number }
+            protocolObservations: { type: object }
+            errors: { type: array, items: { type: object, properties: { reason: { type: string }, count: { type: integer } } } }
+            rawSamples: { type: object, description: 'Only in JSON export and the database' }
+        securityOutcome:
+          type: object
+          properties:
+            phishingTest: { $ref: '#/components/schemas/TestOutcome' }
+            replayTest: { $ref: '#/components/schemas/TestOutcome' }
+            desynchronisationObservation: { $ref: '#/components/schemas/TestOutcome' }
+            bruteForceTest: { $ref: '#/components/schemas/TestOutcome' }
+            expiredCodeTest: { $ref: '#/components/schemas/TestOutcome' }
+            securityNotes: { type: array, items: { type: string } }
+        integrationAssessment: { type: object }
+        usabilityAssessment: { type: object }
+        hardwareRequirement: { type: string }
+        channelDependency: { type: string }
+        distributions: { type: object, description: 'Histograms (GET /jobs/{id}/results only)' }
+
+paths:
+  /health:
+    get: { tags: [system], security: [], summary: 'Liveness and database state', responses: { '200': { description: 'ok' }, '503': { description: 'degraded' } } }
+  /system/status:
+    get: { tags: [system], summary: 'Dashboard system status (db, queue, mail provider, RP)', responses: { '200': { description: 'ok' } } }
+  /protocols:
+    get: { tags: [system], summary: 'Installed protocols', responses: { '200': { description: 'ok', content: { application/json: { schema: { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/Protocol' } } } } } } } } }
+  /literature/table-2-1:
+    get: { tags: [system], summary: 'Table 2.1 — from literature, not measured', responses: { '200': { description: 'ok' } } }
+  /assessment/rubric:
+    get: { tags: [results], summary: 'Integration/usability scoring rubric', responses: { '200': { description: 'ok' } } }
+
+  /auth/register:
+    post:
+      tags: [auth]
+      security: []
+      summary: Register (rate limited)
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [username, email, password, confirmPassword], properties: { username: { type: string, pattern: '^[a-zA-Z0-9_.-]{3,32}$' }, email: { type: string, format: email }, password: { type: string, minLength: 10 }, confirmPassword: { type: string } } } } } }
+      responses: { '201': { description: 'Created; session cookie set' }, '400': { $ref: '#/components/responses/Error' }, '409': { $ref: '#/components/responses/Error' }, '429': { $ref: '#/components/responses/Error' } }
+  /auth/login:
+    post:
+      tags: [auth]
+      security: []
+      summary: First factor (username or email + password)
+      description: Returns the user and sets the session cookie, or `{ mfaRequired, method }` and sets `mfa_pending` when a login factor is enabled. Five failures lock the identifier for 15 minutes.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [identifier, password], properties: { identifier: { type: string }, password: { type: string } } } } } }
+      responses: { '200': { description: 'ok' }, '401': { $ref: '#/components/responses/Error' }, '403': { $ref: '#/components/responses/Error' }, '429': { $ref: '#/components/responses/Error' } }
+  /auth/mfa/oob/send:
+    post: { tags: [auth], security: [{ mfaPending: [] }], summary: 'Email a login code', responses: { '200': { description: 'challenge' }, '429': { $ref: '#/components/responses/Error' } } }
+  /auth/mfa/webauthn/options:
+    post: { tags: [auth], security: [{ mfaPending: [] }], summary: 'WebAuthn authentication options for login', responses: { '200': { description: 'PublicKeyCredentialRequestOptionsJSON' } } }
+  /auth/mfa/verify:
+    post:
+      tags: [auth]
+      security: [{ mfaPending: [] }]
+      summary: Second factor — code (HOTP/TOTP), code + challengeId (OOB) or WebAuthn response
+      requestBody: { content: { application/json: { schema: { type: object, properties: { code: { type: string }, challengeId: { type: string }, response: { type: object } } } } } }
+      responses: { '200': { description: 'Session cookie set' }, '401': { $ref: '#/components/responses/Error' } }
+  /auth/logout:
+    post: { tags: [auth], summary: 'Clear session', responses: { '204': { description: 'done' } } }
+  /auth/me:
+    get: { tags: [auth], summary: 'Current user', responses: { '200': { description: 'ok', content: { application/json: { schema: { type: object, properties: { user: { $ref: '#/components/schemas/User' } } } } } }, '401': { $ref: '#/components/responses/Error' } } }
+
+  /jobs:
+    post:
+      tags: [jobs]
+      summary: Create a comparison job (queued, runs in a worker thread)
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/JobCreate' } } } }
+      responses: { '202': { description: 'Pending job', content: { application/json: { schema: { type: object, properties: { job: { $ref: '#/components/schemas/Job' } } } } } }, '400': { $ref: '#/components/responses/Error' } }
+    get:
+      tags: [jobs]
+      summary: Caller's history
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [Pending, Running, Completed, Failed, Cancelled] } }
+        - { name: protocol, in: query, schema: { $ref: '#/components/schemas/ProtocolName' } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: limit, in: query, schema: { type: integer, default: 20, maximum: 100 } }
+      responses: { '200': { description: '{ items, total, page, limit }' } }
+  /jobs/recent:
+    get: { tags: [jobs], summary: 'Five most recent jobs', responses: { '200': { description: 'ok' } } }
+  /jobs/export:
+    get:
+      tags: [jobs]
+      summary: Export history (CSV or JSON)
+      parameters:
+        - { name: format, in: query, schema: { type: string, enum: [csv, json], default: json } }
+        - { name: includeRaw, in: query, schema: { type: string, enum: ['true', 'false'], default: 'true' } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: protocol, in: query, schema: { type: string } }
+      responses: { '200': { description: 'Attachment' } }
+  /jobs/{id}:
+    get: { tags: [jobs], parameters: [{ $ref: '#/components/parameters/Id' }], summary: 'Job (owner only; others get 404)', responses: { '200': { description: 'ok' }, '404': { $ref: '#/components/responses/Error' } } }
+  /jobs/{id}/results:
+    get: { tags: [jobs], parameters: [{ $ref: '#/components/parameters/Id' }], summary: 'Job and its results with histograms', responses: { '200': { description: 'ok', content: { application/json: { schema: { type: object, properties: { job: { $ref: '#/components/schemas/Job' }, results: { type: array, items: { $ref: '#/components/schemas/Result' } } } } } } } } }
+  /jobs/{id}/export:
+    get:
+      tags: [jobs]
+      parameters: [{ $ref: '#/components/parameters/Id' }, { name: format, in: query, schema: { type: string, enum: [csv, json] } }, { name: includeRaw, in: query, schema: { type: string, enum: ['true', 'false'] } }]
+      summary: Export one job
+      responses: { '200': { description: 'Attachment' } }
+  /jobs/{id}/cancel:
+    post: { tags: [jobs], parameters: [{ $ref: '#/components/parameters/Id' }], summary: 'Cancel a Pending or Running job', responses: { '200': { description: 'ok' }, '409': { $ref: '#/components/responses/Error' } } }
+
+  /results/{id}/assessment:
+    patch:
+      tags: [results]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      summary: Record usability and integration observations (scores 1–5)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { integration: { type: object, properties: { scores: { type: object, additionalProperties: { type: integer, minimum: 1, maximum: 5 } }, observations: { type: string } } }, usability: { type: object } } } } } }
+      responses: { '200': { description: 'Updated assessments' } }
+
+  /simulator/otp/{protocol}/enrol:
+    post:
+      tags: [simulator]
+      parameters: [{ name: protocol, in: path, required: true, schema: { type: string, enum: [hotp, totp] } }]
+      summary: Enrol HOTP/TOTP; returns otpauth URI, QR data URL and the secret (shown once)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { config: { type: object } } } } } }
+      responses: { '201': { description: 'Enrolment' } }
+  /simulator/otp/credentials/{id}/verify:
+    post: { tags: [simulator], parameters: [{ $ref: '#/components/parameters/Id' }], summary: 'Verify a code; returns ok/reason, drift and server time', requestBody: { content: { application/json: { schema: { type: object, properties: { code: { type: string } } } } } }, responses: { '200': { description: 'ok' } } }
+  /simulator/oob/send:
+    post: { tags: [simulator], summary: 'Email a code (30 s cooldown); returns generation and send times separately', responses: { '200': { description: 'ok' }, '429': { $ref: '#/components/responses/Error' }, '502': { $ref: '#/components/responses/Error' } } }
+  /simulator/oob/verify:
+    post: { tags: [simulator], summary: 'Verify an emailed code', requestBody: { content: { application/json: { schema: { type: object, properties: { challengeId: { type: string }, code: { type: string } } } } } }, responses: { '200': { description: 'ok' } } }
+  /simulator/oob/inbox:
+    get: { tags: [simulator], summary: 'Development inbox for MAIL_PROVIDER=local (404 in production)', responses: { '200': { description: 'ok' } } }
+  /simulator/webauthn/register/options:
+    post: { tags: [simulator], summary: 'Registration options', responses: { '200': { description: 'PublicKeyCredentialCreationOptionsJSON' } } }
+  /simulator/webauthn/register/verify:
+    post: { tags: [simulator], summary: 'Verify registration', requestBody: { content: { application/json: { schema: { type: object, properties: { response: { type: object } } } } } }, responses: { '201': { description: 'Credential stored' } } }
+  /simulator/webauthn/authenticate/options:
+    post: { tags: [simulator], summary: 'Authentication options', responses: { '200': { description: 'PublicKeyCredentialRequestOptionsJSON' } } }
+  /simulator/webauthn/authenticate/verify:
+    post: { tags: [simulator], summary: 'Verify assertion', requestBody: { content: { application/json: { schema: { type: object, properties: { response: { type: object } } } } } }, responses: { '200': { description: 'ok/reason and server verification time' } } }
+
+  /credentials:
+    get: { tags: [credentials], summary: 'My enrolled factors', responses: { '200': { description: 'ok' } } }
+  /credentials/{id}:
+    patch: { tags: [credentials], parameters: [{ $ref: '#/components/parameters/Id' }], summary: 'Set or clear the login factor', requestBody: { content: { application/json: { schema: { type: object, properties: { isLoginFactor: { type: boolean } } } } } }, responses: { '200': { description: 'ok' } } }
+    delete: { tags: [credentials], parameters: [{ $ref: '#/components/parameters/Id' }], summary: 'Delete a factor', responses: { '204': { description: 'deleted' } } }
+
+  /admin/users:
+    get: { tags: [admin], summary: 'List users', parameters: [{ name: q, in: query, schema: { type: string } }, { name: page, in: query, schema: { type: integer } }], responses: { '200': { description: 'ok' }, '403': { $ref: '#/components/responses/Error' } } }
+  /admin/users/{id}:
+    patch: { tags: [admin], parameters: [{ $ref: '#/components/parameters/Id' }], summary: 'Change role or status (not self)', requestBody: { content: { application/json: { schema: { type: object, properties: { role: { type: string, enum: [user, admin] }, status: { type: string, enum: [active, suspended] } } } } } }, responses: { '200': { description: 'ok' } } }
+  /admin/protocols:
+    get: { tags: [admin], summary: 'Protocol definitions', responses: { '200': { description: 'ok' } } }
+  /admin/protocols/{id}:
+    patch: { tags: [admin], parameters: [{ $ref: '#/components/parameters/Id' }], summary: 'Enable/disable and set validated default parameters', requestBody: { content: { application/json: { schema: { type: object, properties: { status: { type: string, enum: [active, disabled] }, parameters: { type: object } } } } } }, responses: { '200': { description: 'ok' } } }
+  /admin/audit-logs:
+    get:
+      tags: [admin]
+      summary: Audit events (FR11)
+      parameters: [{ name: action, in: query, description: 'prefix', schema: { type: string } }, { name: userId, in: query, schema: { type: string } }, { name: from, in: query, schema: { type: string, format: date } }, { name: to, in: query, schema: { type: string, format: date } }, { name: page, in: query, schema: { type: integer } }]
+      responses: { '200': { description: 'ok' } }
+
+x-socket-events:
+  description: Socket.IO, authenticated with the session cookie; each socket joins only `user:<id>`. Every payload includes jobId.
+  events:
+    job:started: { protocols: '[name]', settings: object }
+    protocol:started: { protocol: string, index: integer, total: integer }
+    iteration:progress: { protocol: string, phase: 'warmup | measure | security', iteration: integer, of: integer, percent: number }
+    protocol:completed: { protocol: string, index: integer, summary: 'object, failed: boolean?, error: string?' }
+    job:completed: { status: Completed, resultCount: integer }
+    job:failed: { status: Failed, error: string }
+    job:cancelled: { status: Cancelled }

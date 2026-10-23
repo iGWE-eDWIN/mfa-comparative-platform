@@ -1,0 +1,15 @@
+
+ RUN  v4.1.12 client
+
+ ✓ tests/client.test.jsx > virtual token (WebCrypto) matches RFC 4226 / RFC 6238 > HOTP vectors 8ms
+ ✓ tests/client.test.jsx > virtual token (WebCrypto) matches RFC 4226 / RFC 6238 > TOTP vector T=59 (8 digits, SHA-1) 1ms
+ ✓ tests/client.test.jsx > virtual token (WebCrypto) matches RFC 4226 / RFC 6238 > rejects invalid base32 1ms
+ ✓ tests/client.test.jsx > registration validation mirrors the server > flags every invalid field 1ms
+ ✓ tests/client.test.jsx > status badges never rely on colour alone > outcomes carry an icon and a label 31ms
+ ✓ tests/client.test.jsx > formatting helpers > formats durations, percentages and query strings 1ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  22:42:31
+   Duration  1.44s (transform 137ms, setup 143ms, import 272ms, tests 46ms, environment 804ms)
+
