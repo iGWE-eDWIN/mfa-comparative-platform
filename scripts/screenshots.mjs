@@ -14,13 +14,20 @@ const { chromium } = require('playwright-core');
 const { resolveChromium } = await import('../server/src/lib/virtualAuthenticator.js');
 
 const args = process.argv.slice(2);
-const flags = Object.fromEntries(args.filter((a) => a.startsWith('--')).map((a) => a.slice(2).split('=')));
-const [base = 'http://localhost:4000', out = 'docs/screenshots'] = args.filter((a) => !a.startsWith('--'));
+const flags = Object.fromEntries(
+  args.filter((a) => a.startsWith('--')).map((a) => a.slice(2).split('=')),
+);
+const [base = 'http://localhost:4000', out = 'docs/screenshots'] = args.filter(
+  (a) => !a.startsWith('--'),
+);
 fs.mkdirSync(out, { recursive: true });
 const iterations = Number(flags.iterations ?? 100);
 
 const browser = await chromium.launch({ headless: true, executablePath: resolveChromium() });
-const context = await browser.newContext({ viewport: { width: 1360, height: 900 }, colorScheme: flags.dark ? 'dark' : 'light' });
+const context = await browser.newContext({
+  viewport: { width: 1360, height: 900 },
+  colorScheme: flags.dark ? 'dark' : 'light',
+});
 const page = await context.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
@@ -52,7 +59,11 @@ if (!jobId) {
   await page.getByRole('button', { name: 'Run Comparison' }).click();
   await page.getByRole('heading', { name: 'Live benchmark' }).waitFor();
   jobId = page.url().split('/jobs/')[1].split('/')[0];
-  await page.waitForFunction(() => document.querySelector('[role=progressbar]')?.getAttribute('aria-valuenow') > 5, null, { timeout: 120000 });
+  await page.waitForFunction(
+    () => document.querySelector('[role=progressbar]')?.getAttribute('aria-valuenow') > 5,
+    null,
+    { timeout: 120000 },
+  );
   await shot('04-monitor-running');
   await page.getByRole('button', { name: 'View results' }).waitFor({ timeout: 30 * 60 * 1000 });
   await shot('05-monitor-complete');

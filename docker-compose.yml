@@ -1,0 +1,36 @@
+# docker compose up --build   →   http://localhost:8080
+# Secrets come from .env (copy .env.example). Production mode requires JWT_SECRET,
+# SECRETS_ENCRYPTION_KEY, OTP_HMAC_KEY and the SEED_*_PASSWORD values.
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes: [mongo-data:/data/db]
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.adminCommand("ping").ok']
+      interval: 10s
+      retries: 5
+
+  server:
+    build: { context: ., dockerfile: docker/server.Dockerfile }
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/mfa_platform
+      CLIENT_ORIGINS: http://localhost:8080
+      WEBAUTHN_ORIGIN: http://localhost:8080
+      WEBAUTHN_RP_ID: localhost
+      COOKIE_SECURE: 'false'
+    depends_on:
+      mongo: { condition: service_healthy }
+    ipc: host
+    init: true
+
+  client:
+    build: { context: ., dockerfile: docker/client.Dockerfile }
+    restart: unless-stopped
+    ports: ['8080:8080']
+    depends_on: [server]
+
+volumes:
+  mongo-data:

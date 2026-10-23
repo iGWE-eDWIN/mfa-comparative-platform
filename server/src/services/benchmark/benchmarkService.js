@@ -53,12 +53,16 @@ async function start(jobId) {
   emit('job:started', { protocols: job.protocols.map((p) => p.name), settings: job.settings });
 
   let mailProvider = env.MAIL_PROVIDER;
+  let mailResolution = null;
   if (job.protocols.some((p) => p.name === 'OOB Email')) {
     // Resolve once on the API thread (it owns the local sink; Ethereal fallback is decided here).
     const info = await getMailer()
       .init()
       .catch(() => null);
-    if (info) mailProvider = info.provider;
+    if (info) {
+      mailProvider = info.provider;
+      mailResolution = { requested: info.requested, fallbackReason: info.fallbackReason };
+    }
   }
 
   const worker = new Worker(WORKER, {
@@ -107,7 +111,9 @@ async function start(jobId) {
       }
     } else if (msg.type === 'done' || msg.type === 'fatal') {
       finished = true;
-      await finish(job, msg, emit).catch((err) => logger.error({ err }, 'failed to finalise job'));
+      await finish(job, { ...msg, mailResolution }, emit).catch((err) =>
+        logger.error({ err }, 'failed to finalise job'),
+      );
       release(String(job._id));
     }
   });
@@ -178,7 +184,8 @@ async function finish(job, msg, emit) {
           provider: msg.mailInfo.provider,
           host: msg.mailInfo.host,
           tls: msg.mailInfo.tls,
-          fallbackReason: msg.mailInfo.fallbackReason,
+          requested: msg.mailResolution?.requested ?? msg.mailInfo.requested,
+          fallbackReason: msg.mailResolution?.fallbackReason ?? msg.mailInfo.fallbackReason,
         }
       : null,
   };

@@ -1,0 +1,922 @@
+{
+  "generatedAt": "2026-10-23T21:38:12.953Z",
+  "settings": {
+    "runs": 3,
+    "iterations": 1000,
+    "warmup": 50,
+    "protocols": [
+      "HOTP",
+      "OOB Email"
+    ],
+    "config": {
+      "HOTP": {
+        "lookAheadWindow": 2
+      },
+      "OOB Email": {
+        "sendEmail": false
+      }
+    }
+  },
+  "jobIds": [
+    "6adbd3bedcb82a0ed41a8038",
+    "6adbd3c0dcb82a0ed41a8055",
+    "6adbd3c2dcb82a0ed41a8072"
+  ],
+  "environment": {
+    "capturedAt": "2026-10-23T21:38:06.782Z",
+    "node": "v24.21.0",
+    "v8": "13.6.233.17-node.53",
+    "openssl": "3.5.8",
+    "platform": "linux",
+    "arch": "x64",
+    "osRelease": "7.0.0-38-generic",
+    "osType": "Linux",
+    "cpuModel": "Intel(R) Core(TM) i7-8550U CPU @ 1.80GHz",
+    "cpuCount": 8,
+    "cpuSpeedMHz": 3199,
+    "totalMemoryMB": 11205,
+    "freeMemoryMB": 3806,
+    "loadAverage": [
+      2.53,
+      2.26,
+      1.88
+    ],
+    "mongodb": {
+      "database": "mfa_platform"
+    },
+    "libraries": {
+      "@simplewebauthn/server": "13.3.3",
+      "@simplewebauthn/browser": "13.3.0",
+      "nodemailer": "10.2.1",
+      "mongoose": "8.24.7",
+      "express": "5.3.0",
+      "socket.io": "4.8.4",
+      "playwright-core": "1.64.1",
+      "zod": "4.6.7",
+      "bcryptjs": "2.4.3"
+    },
+    "hostname": "edwin-ThinkPad-T480",
+    "mailProviderConfigured": "ethereal",
+    "webauthnOrigin": "http://localhost:4000",
+    "webauthnRpId": "localhost",
+    "benchmarkConcurrency": 1,
+    "isolation": "worker_threads (one worker per job)",
+    "browser": null,
+    "mail": null
+  },
+  "protocols": {
+    "HOTP": {
+      "latencyMean": {
+        "perRun": [
+          0.183576,
+          0.182599,
+          0.186775
+        ],
+        "mean": 0.18431666666666668,
+        "sd": 0.0021843040844473356,
+        "cv": 0.011850822413133205
+      },
+      "latencyMedian": {
+        "perRun": [
+          0.16713,
+          0.162369,
+          0.164224
+        ],
+        "mean": 0.16457433333333335,
+        "sd": 0.002399756307072304,
+        "cv": 0.014581595188429365
+      },
+      "latencyP95": {
+        "perRun": [
+          0.309924,
+          0.295031,
+          0.317441
+        ],
+        "mean": 0.3074653333333333,
+        "sd": 0.011405516486916897,
+        "cv": 0.03709529254327934
+      },
+      "latencyP99": {
+        "perRun": [
+          0.36011,
+          0.347095,
+          0.360241
+        ],
+        "mean": 0.3558153333333333,
+        "sd": 0.007552314236929849,
+        "cv": 0.021225376001024452
+      },
+      "latencyStdDev": {
+        "perRun": [
+          0.052491,
+          0.0506,
+          0.056258
+        ],
+        "mean": 0.05311633333333334,
+        "sd": 0.002880368437081156,
+        "cv": 0.054227546525196055
+      },
+      "latencyMin": {
+        "perRun": [
+          0.143537,
+          0.146392,
+          0.143809
+        ],
+        "mean": 0.1445793333333333,
+        "sd": 0.0015756955078102277,
+        "cv": 0.010898483700830188
+      },
+      "latencyMax": {
+        "perRun": [
+          0.79253,
+          0.751651,
+          0.576689
+        ],
+        "mean": 0.7069566666666667,
+        "sd": 0.1146517417849957,
+        "cv": 0.16217647727347131
+      },
+      "processingMean": {
+        "perRun": [
+          0.132895,
+          0.132982,
+          0.136002
+        ],
+        "mean": 0.13395966666666667,
+        "sd": 0.0017692473917836798,
+        "cv": 0.013207314080484521
+      },
+      "processingMedian": {
+        "perRun": [
+          0.120881,
+          0.11813,
+          0.118859
+        ],
+        "mean": 0.11929000000000001,
+        "sd": 0.001425244189604014,
+        "cv": 0.011947725623304668
+      },
+      "processingP95": {
+        "perRun": [
+          0.22312,
+          0.220929,
+          0.232583
+        ],
+        "mean": 0.225544,
+        "sd": 0.006193606461505293,
+        "cv": 0.027460745847840303
+      },
+      "processingP99": {
+        "perRun": [
+          0.253497,
+          0.266229,
+          0.261434
+        ],
+        "mean": 0.2603866666666666,
+        "sd": 0.006430290532575762,
+        "cv": 0.02469516052758371
+      },
+      "opsPerSec": {
+        "perRun": [
+          5320.078,
+          5348.258,
+          5229.627
+        ],
+        "mean": 5299.321,
+        "sd": 61.97957991951842,
+        "cv": 0.011695758743340594
+      },
+      "errorRate": {
+        "perRun": [
+          0,
+          0,
+          0
+        ],
+        "mean": 0,
+        "sd": 0,
+        "cv": null
+      },
+      "cpuPerOpUs": {
+        "perRun": [
+          187.31,
+          186.242,
+          190.356
+        ],
+        "mean": 187.96933333333334,
+        "sd": 2.134780863070806,
+        "cv": 0.011357069928450063
+      },
+      "heapDeltaKB": {
+        "perRun": [
+          179.28,
+          178.23,
+          177.74
+        ],
+        "mean": 178.41666666666666,
+        "sd": 0.786786714004075,
+        "cv": 0.004409827448878515
+      },
+      "enrolmentMs": {
+        "perRun": [
+          0.763416,
+          1.163467,
+          0.802347
+        ],
+        "mean": 0.9097433333333335,
+        "sd": 0.22059165886391385,
+        "cv": 0.2424768072283177
+      },
+      "pooledLatency": {
+        "n": 3000,
+        "median": 0.16531,
+        "p95": 0.307552,
+        "p99": 0.356384,
+        "min": 0.143537,
+        "max": 0.79253
+      },
+      "errorsTotal": 0,
+      "attemptedTotal": 3000,
+      "security": {
+        "phishingTest": [
+          "fail",
+          "fail",
+          "fail"
+        ],
+        "replayTest": [
+          "pass",
+          "pass",
+          "pass"
+        ],
+        "bruteForceTest": [
+          "pass",
+          "pass",
+          "pass"
+        ],
+        "expiredCodeTest": [
+          "not-applicable",
+          "not-applicable",
+          "not-applicable"
+        ],
+        "desynchronisationObservation": [
+          "pass",
+          "pass",
+          "pass"
+        ]
+      },
+      "securityExample": {
+        "phishingTest": {
+          "status": "fail",
+          "explanation": "Not phishing-resistant: a code captured by a simulated attacker proxy and relayed to the genuine server within its validity window was accepted, because the code carries no origin binding.",
+          "evidence": {
+            "relayAccepted": true,
+            "reason": null
+          }
+        },
+        "replayTest": {
+          "status": "pass",
+          "explanation": "Replay rejected: the server advanced its counter past the matched value, so the same code no longer falls inside the look-ahead window.",
+          "evidence": {
+            "firstUseAccepted": true,
+            "replayAccepted": false,
+            "replayRejectionReason": "invalid_code"
+          }
+        },
+        "desynchronisationObservation": {
+          "status": "pass",
+          "explanation": "A token 2 presses ahead was accepted and the server resynchronised (counter → 3); a token 3 presses ahead fell outside the look-ahead window and was rejected. Counter desynchronisation beyond the window needs manual resynchronisation (Chapter 2 §2.4.1.3).",
+          "evidence": {
+            "lookAheadWindow": 2,
+            "driftInsideWindow": {
+              "drift": 2,
+              "accepted": true,
+              "serverCounterAfter": 3
+            },
+            "driftOutsideWindow": {
+              "drift": 3,
+              "accepted": false
+            }
+          }
+        },
+        "bruteForceTest": {
+          "status": "pass",
+          "explanation": "After 5 wrong guesses the credential was locked, and the correct code was refused afterwards. An online guesser has at most 5 tries × 3 acceptable value(s) out of 10^6, a success probability of about 1.50e-5 per lockout period.",
+          "evidence": {
+            "maxAttempts": 5,
+            "attemptsUntilBlocked": 6,
+            "rejectionReasons": [
+              "invalid_code",
+              "invalid_code",
+              "invalid_code",
+              "invalid_code",
+              "invalid_code",
+              "locked",
+              "locked"
+            ],
+            "correctCodeAcceptedAfterLimit": false,
+            "acceptableValuesPerAttempt": 3,
+            "successProbability": 0.000015
+          }
+        },
+        "expiredCodeTest": {
+          "status": "not-applicable",
+          "explanation": "HOTP codes have no time-based expiry. An unused code generated 24 h earlier was still accepted; a captured but unused HOTP code stays valid until a later code is used.",
+          "evidence": {
+            "acceptedAfter24h": true
+          }
+        },
+        "securityNotes": [
+          "Controlled simulations of defined attack scenarios against this implementation; not penetration testing and not a discovery of unknown vulnerabilities."
+        ]
+      },
+      "integrationAssessment": {
+        "effortScore": 3.75,
+        "criteria": [
+          {
+            "criterion": "dependencies",
+            "label": "Third-party dependencies",
+            "score": 5,
+            "basis": "0 third-party runtime package(s): node:crypto",
+            "measured": true,
+            "measuredValue": 0
+          },
+          {
+            "criterion": "linesOfCode",
+            "label": "Lines of integration code",
+            "score": 3,
+            "basis": "360 lines across 4 file(s)",
+            "measured": true,
+            "measuredValue": 360
+          },
+          {
+            "criterion": "setupSteps",
+            "label": "Developer setup steps",
+            "score": 4,
+            "basis": "Generate secret, encrypt and store, show QR, verify first code, persist counter",
+            "measured": false
+          },
+          {
+            "criterion": "serverState",
+            "label": "Server-side state to manage",
+            "score": 3,
+            "basis": "Encrypted secret + counter, updated on every login",
+            "measured": false
+          }
+        ],
+        "files": [
+          {
+            "file": "protocols/hotp/index.js",
+            "lines": 102
+          },
+          {
+            "file": "lib/otp.js",
+            "lines": 80
+          },
+          {
+            "file": "lib/crypto.js",
+            "lines": 47
+          },
+          {
+            "file": "services/otpCredentialService.js",
+            "lines": 131
+          }
+        ],
+        "observations": "",
+        "source": "rubric v1 (measured + author initial assessment)",
+        "editedBy": null,
+        "editedAt": null
+      },
+      "usabilityAssessment": {
+        "score": 2.75,
+        "criteria": [
+          {
+            "criterion": "userSteps",
+            "label": "User steps per login",
+            "score": 3,
+            "basis": "Open app or press token, read code, type code",
+            "measured": false
+          },
+          {
+            "criterion": "errorRecovery",
+            "label": "Error recovery",
+            "score": 2,
+            "basis": "Counter drift beyond window needs resynchronisation by consecutive codes or an admin",
+            "measured": false
+          },
+          {
+            "criterion": "accessibility",
+            "label": "Accessibility",
+            "score": 3,
+            "basis": "Transcribe 6 digits; no time pressure",
+            "measured": false
+          },
+          {
+            "criterion": "enrolment",
+            "label": "Enrolment effort",
+            "score": 3,
+            "basis": "Scan QR or provision a hardware token",
+            "measured": false
+          }
+        ],
+        "observations": "",
+        "source": "rubric v1 (author initial assessment)",
+        "editedBy": null,
+        "editedAt": null
+      },
+      "protocolObservations": [
+        {
+          "resyncCount": 0,
+          "maxAcceptedDrift": 0,
+          "rejectedOutsideWindow": 0,
+          "lockouts": 0,
+          "serverCounter": 1050,
+          "tokenCounter": 1050,
+          "lookAheadWindow": 2,
+          "counterDriftPerIteration": 0
+        },
+        {
+          "resyncCount": 0,
+          "maxAcceptedDrift": 0,
+          "rejectedOutsideWindow": 0,
+          "lockouts": 0,
+          "serverCounter": 1050,
+          "tokenCounter": 1050,
+          "lookAheadWindow": 2,
+          "counterDriftPerIteration": 0
+        },
+        {
+          "resyncCount": 0,
+          "maxAcceptedDrift": 0,
+          "rejectedOutsideWindow": 0,
+          "lockouts": 0,
+          "serverCounter": 1050,
+          "tokenCounter": 1050,
+          "lookAheadWindow": 2,
+          "counterDriftPerIteration": 0
+        }
+      ],
+      "channel": null,
+      "resourcesNote": null,
+      "config": {
+        "digits": 6,
+        "algorithm": "SHA1",
+        "lookAheadWindow": 2,
+        "counterDrift": 0,
+        "maxAttempts": 5
+      }
+    },
+    "OOB Email": {
+      "latencyMean": {
+        "perRun": [
+          0.098235,
+          0.103748,
+          0.090655
+        ],
+        "mean": 0.09754600000000001,
+        "sd": 0.0065736369689845245,
+        "cv": 0.06739012331602037
+      },
+      "latencyMedian": {
+        "perRun": [
+          0.087828,
+          0.095445,
+          0.083536
+        ],
+        "mean": 0.08893633333333334,
+        "sd": 0.006031365710461715,
+        "cv": 0.06781666709663146
+      },
+      "latencyP95": {
+        "perRun": [
+          0.159894,
+          0.162002,
+          0.130211
+        ],
+        "mean": 0.15070233333333335,
+        "sd": 0.017777288104020073,
+        "cv": 0.11796292539611244
+      },
+      "latencyP99": {
+        "perRun": [
+          0.193322,
+          0.196371,
+          0.16034
+        ],
+        "mean": 0.18334433333333333,
+        "sd": 0.019980580930827132,
+        "cv": 0.1089784481885294
+      },
+      "latencyStdDev": {
+        "perRun": [
+          0.029071,
+          0.029867,
+          0.021115
+        ],
+        "mean": 0.026684333333333334,
+        "sd": 0.004839577392018165,
+        "cv": 0.1813639985516407
+      },
+      "latencyMin": {
+        "perRun": [
+          0.07651,
+          0.078475,
+          0.074549
+        ],
+        "mean": 0.07651133333333333,
+        "sd": 0.0019630003396162036,
+        "cv": 0.025656334219978785
+      },
+      "latencyMax": {
+        "perRun": [
+          0.40927,
+          0.520665,
+          0.418524
+        ],
+        "mean": 0.4494863333333334,
+        "sd": 0.061815945113969865,
+        "cv": 0.13752575001680406
+      },
+      "processingMean": {
+        "perRun": [
+          0.082088,
+          0.086973,
+          0.076157
+        ],
+        "mean": 0.08173933333333333,
+        "sd": 0.0054164232047849885,
+        "cv": 0.06626458748686868
+      },
+      "processingMedian": {
+        "perRun": [
+          0.073559,
+          0.079904,
+          0.070107
+        ],
+        "mean": 0.07452333333333334,
+        "sd": 0.004969180650100511,
+        "cv": 0.06667952744241862
+      },
+      "processingP95": {
+        "perRun": [
+          0.135363,
+          0.136306,
+          0.109502
+        ],
+        "mean": 0.127057,
+        "sd": 0.01521038562956246,
+        "cv": 0.11971308648529762
+      },
+      "processingP99": {
+        "perRun": [
+          0.16465,
+          0.163229,
+          0.136475
+        ],
+        "mean": 0.15478466666666668,
+        "sd": 0.015872546435066213,
+        "cv": 0.10254598712447537
+      },
+      "opsPerSec": {
+        "perRun": [
+          9844.037,
+          9307.294,
+          10686.591
+        ],
+        "mean": 9945.974,
+        "sd": 695.2757852312997,
+        "cv": 0.06990524861932071
+      },
+      "errorRate": {
+        "perRun": [
+          0,
+          0,
+          0
+        ],
+        "mean": 0,
+        "sd": 0,
+        "cv": null
+      },
+      "cpuPerOpUs": {
+        "perRun": [
+          101.34,
+          107.047,
+          93.186
+        ],
+        "mean": 100.52433333333333,
+        "sd": 6.966406127504573,
+        "cv": 0.06930069463285414
+      },
+      "heapDeltaKB": {
+        "perRun": [
+          854.71,
+          855.84,
+          853.68
+        ],
+        "mean": 854.7433333333333,
+        "sd": 1.0803857335847324,
+        "cv": 0.00126398848806628
+      },
+      "enrolmentMs": {
+        "perRun": [
+          0.005098,
+          0.010995,
+          0.009242
+        ],
+        "mean": 0.008445,
+        "sd": 0.003028210527687928,
+        "cv": 0.3585802874704474
+      },
+      "emailSendMean": {
+        "perRun": [
+          0,
+          0,
+          0
+        ],
+        "mean": 0,
+        "sd": 0,
+        "cv": null
+      },
+      "emailSendMedian": {
+        "perRun": [
+          0,
+          0,
+          0
+        ],
+        "mean": 0,
+        "sd": 0,
+        "cv": null
+      },
+      "emailSendP95": {
+        "perRun": [
+          0,
+          0,
+          0
+        ],
+        "mean": 0,
+        "sd": 0,
+        "cv": null
+      },
+      "pooledLatency": {
+        "n": 3000,
+        "median": 0.089465,
+        "p95": 0.154994,
+        "p99": 0.187034,
+        "min": 0.074549,
+        "max": 0.520665
+      },
+      "errorsTotal": 0,
+      "attemptedTotal": 3000,
+      "security": {
+        "phishingTest": [
+          "fail",
+          "fail",
+          "fail"
+        ],
+        "replayTest": [
+          "pass",
+          "pass",
+          "pass"
+        ],
+        "bruteForceTest": [
+          "pass",
+          "pass",
+          "pass"
+        ],
+        "expiredCodeTest": [
+          "pass",
+          "pass",
+          "pass"
+        ],
+        "desynchronisationObservation": [
+          "not-applicable",
+          "not-applicable",
+          "not-applicable"
+        ]
+      },
+      "securityExample": {
+        "phishingTest": {
+          "status": "fail",
+          "explanation": "Not phishing-resistant: a code captured by a simulated attacker proxy and relayed to the genuine server within its validity window was accepted, because the code carries no origin binding.",
+          "evidence": {
+            "relayAccepted": true,
+            "reason": null
+          }
+        },
+        "replayTest": {
+          "status": "pass",
+          "explanation": "Replay rejected: the code was marked used on first successful verification.",
+          "evidence": {
+            "firstUseAccepted": true,
+            "replayAccepted": false,
+            "replayRejectionReason": "already_used"
+          }
+        },
+        "desynchronisationObservation": {
+          "status": "not-applicable",
+          "explanation": "No shared counter or clock: each code is generated by the server per transaction and governed only by its expiry timestamp.",
+          "evidence": {}
+        },
+        "bruteForceTest": {
+          "status": "pass",
+          "explanation": "After 5 wrong guesses the challenge was invalidated, and the correct code was refused afterwards. An online guesser has at most 5 tries × 1 acceptable value(s) out of 10^6, a success probability of about 5.00e-6 per lockout period.",
+          "evidence": {
+            "maxAttempts": 5,
+            "attemptsUntilBlocked": 6,
+            "rejectionReasons": [
+              "invalid_code",
+              "invalid_code",
+              "invalid_code",
+              "invalid_code",
+              "invalid_code",
+              "attempts_exceeded",
+              "attempts_exceeded"
+            ],
+            "correctCodeAcceptedAfterLimit": false,
+            "acceptableValuesPerAttempt": 1,
+            "successProbability": 0.000005
+          }
+        },
+        "expiredCodeTest": {
+          "status": "pass",
+          "explanation": "A code submitted 301 s after issue (expiry 300 s) was rejected (expired).",
+          "evidence": {
+            "expirySeconds": 300,
+            "submittedAfterSeconds": 301,
+            "accepted": false,
+            "reason": "expired"
+          }
+        },
+        "securityNotes": [
+          "Controlled simulations of defined attack scenarios against this implementation; not penetration testing and not a discovery of unknown vulnerabilities.",
+          "Email-account compromise and SMTP-hop interception (Chapter 2 §2.4.3.2) are not simulated; real providers are forced to use TLS (requireTLS)."
+        ]
+      },
+      "integrationAssessment": {
+        "effortScore": 3.25,
+        "criteria": [
+          {
+            "criterion": "dependencies",
+            "label": "Third-party dependencies",
+            "score": 4,
+            "basis": "1 third-party runtime package(s): node:crypto, nodemailer",
+            "measured": true,
+            "measuredValue": 1
+          },
+          {
+            "criterion": "linesOfCode",
+            "label": "Lines of integration code",
+            "score": 2,
+            "basis": "558 lines across 5 file(s)",
+            "measured": true,
+            "measuredValue": 558
+          },
+          {
+            "criterion": "setupSteps",
+            "label": "Developer setup steps",
+            "score": 5,
+            "basis": "Configure SMTP provider credentials (and a test inbox for development)",
+            "measured": false
+          },
+          {
+            "criterion": "serverState",
+            "label": "Server-side state to manage",
+            "score": 2,
+            "basis": "Hashed challenge + expiry + attempts + cooldown, plus an external mail provider",
+            "measured": false
+          }
+        ],
+        "files": [
+          {
+            "file": "protocols/oobEmail/index.js",
+            "lines": 145
+          },
+          {
+            "file": "lib/crypto.js",
+            "lines": 47
+          },
+          {
+            "file": "services/mail/mailService.js",
+            "lines": 78
+          },
+          {
+            "file": "services/mail/providers.js",
+            "lines": 131
+          },
+          {
+            "file": "services/oobService.js",
+            "lines": 157
+          }
+        ],
+        "observations": "",
+        "source": "rubric v1 (measured + author initial assessment)",
+        "editedBy": null,
+        "editedAt": null
+      },
+      "usabilityAssessment": {
+        "score": 3.75,
+        "criteria": [
+          {
+            "criterion": "userSteps",
+            "label": "User steps per login",
+            "score": 4,
+            "basis": "Switch to the mail client, open the message, copy the code, return and enter it",
+            "measured": false
+          },
+          {
+            "criterion": "errorRecovery",
+            "label": "Error recovery",
+            "score": 3,
+            "basis": "Resend after the cooldown; delivery delays can expire the code",
+            "measured": false
+          },
+          {
+            "criterion": "accessibility",
+            "label": "Accessibility",
+            "score": 3,
+            "basis": "Copy-paste is possible but means switching context between apps",
+            "measured": false
+          },
+          {
+            "criterion": "enrolment",
+            "label": "Enrolment effort",
+            "score": 5,
+            "basis": "Uses the address already registered",
+            "measured": false
+          }
+        ],
+        "observations": "",
+        "source": "rubric v1 (author initial assessment)",
+        "editedBy": null,
+        "editedAt": null
+      },
+      "protocolObservations": [
+        {
+          "provider": "none (sendEmail=false)",
+          "delivered": 0,
+          "deliveryFailures": 0,
+          "lastPreviewUrl": null,
+          "expiredRejected": 0,
+          "attemptLimitReached": 0,
+          "reuseRejected": 0,
+          "resendBlockedByCooldown": 0,
+          "tls": null,
+          "pooledTransport": null,
+          "fallbackReason": null,
+          "outstandingChallenges": 1050
+        },
+        {
+          "provider": "none (sendEmail=false)",
+          "delivered": 0,
+          "deliveryFailures": 0,
+          "lastPreviewUrl": null,
+          "expiredRejected": 0,
+          "attemptLimitReached": 0,
+          "reuseRejected": 0,
+          "resendBlockedByCooldown": 0,
+          "tls": null,
+          "pooledTransport": null,
+          "fallbackReason": null,
+          "outstandingChallenges": 1050
+        },
+        {
+          "provider": "none (sendEmail=false)",
+          "delivered": 0,
+          "deliveryFailures": 0,
+          "lastPreviewUrl": null,
+          "expiredRejected": 0,
+          "attemptLimitReached": 0,
+          "reuseRejected": 0,
+          "resendBlockedByCooldown": 0,
+          "tls": null,
+          "pooledTransport": null,
+          "fallbackReason": null,
+          "outstandingChallenges": 1050
+        }
+      ],
+      "channel": {
+        "provider": "none (sendEmail=false)",
+        "tls": null,
+        "fallbackReason": null,
+        "sendTime": {
+          "n": 1000,
+          "mean": 0,
+          "median": 0,
+          "p95": 0,
+          "p99": 0,
+          "min": 0,
+          "max": 0,
+          "stdDev": 0
+        },
+        "note": "SMTP submission time; depends on provider and network. Excluded from processingTime, included in latency."
+      },
+      "resourcesNote": null,
+      "config": {
+        "codeDigits": 6,
+        "expirySeconds": 300,
+        "maxAttempts": 5,
+        "resendCooldownSeconds": 30,
+        "sendEmail": false,
+        "recipient": "benchmark-user@mfa-platform.test"
+      }
+    }
+  }
+}

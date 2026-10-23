@@ -1,0 +1,10 @@
+node_modules
+**/node_modules
+client/dist
+coverage
+**/coverage
+.mongo-data
+server/.data
+.env
+docs
+.git
