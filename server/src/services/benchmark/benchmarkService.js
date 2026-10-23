@@ -8,6 +8,7 @@ import { emitToUser } from '../socketManager.js';
 import { audit } from '../auditService.js';
 import { initialAssessments } from '../assessmentService.js';
 import { getMailer } from '../mail/mailService.js';
+import { localSinkPort } from '../mail/localSink.js';
 
 const WORKER = path.join(path.dirname(fileURLToPath(import.meta.url)), 'worker.js');
 const queue = [];
@@ -71,6 +72,7 @@ async function start(jobId) {
         runSecuritySimulations: job.settings.runSecuritySimulations,
       },
       mailProvider,
+      localSmtpPort: localSinkPort(),
       rp: { id: env.WEBAUTHN_RP_ID, name: env.WEBAUTHN_RP_NAME, origin: env.WEBAUTHN_ORIGIN },
     },
   });
@@ -106,6 +108,7 @@ async function start(jobId) {
     } else if (msg.type === 'done' || msg.type === 'fatal') {
       finished = true;
       await finish(job, msg, emit).catch((err) => logger.error({ err }, 'failed to finalise job'));
+      release(String(job._id));
     }
   });
   worker.on('error', async (err) => {
@@ -114,9 +117,7 @@ async function start(jobId) {
     await finish(job, { type: 'fatal', error: { message: err.message } }, emit).catch(() => {});
   });
   worker.on('exit', async (code) => {
-    const entry = running.get(String(job._id));
-    clearTimeout(entry?.killTimer);
-    running.delete(String(job._id));
+    release(String(job._id));
     if (!finished) {
       finished = true;
       const cancelled = (await ComparisonJob.findById(job._id))?.cancelRequested;
@@ -140,6 +141,15 @@ async function start(jobId) {
     }
     pump();
   });
+}
+
+/** Free the job's concurrency slot (idempotent) and start the next queued job. */
+function release(id) {
+  const entry = running.get(id);
+  if (!entry) return;
+  clearTimeout(entry.killTimer);
+  running.delete(id);
+  setImmediate(pump);
 }
 
 async function finish(job, msg, emit) {

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global document -- waitForFunction callbacks run in the browser */
 /**
  * Drives the real UI in headless Chromium and saves screenshots (used for Chapter 4 figures).
  * Prerequisite: API serving the built client (SERVE_CLIENT=true), seeded database.

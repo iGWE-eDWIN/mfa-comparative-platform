@@ -12,7 +12,7 @@
     "test:unit": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
     "test:e2e": "vitest run --project e2e",
-    "coverage": "vitest run --project unit --project integration --coverage"
+    "coverage": "vitest run --project unit --project integration --project e2e --coverage"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.1.0",

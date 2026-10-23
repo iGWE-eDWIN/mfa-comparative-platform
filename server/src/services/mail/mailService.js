@@ -35,7 +35,12 @@ export class Mailer {
       provider = 'local';
       built = await PROVIDERS.local();
     }
-    if (provider === 'local' && this.startSink) await startLocalSink(built.transport.port);
+    if (provider === 'local' && this.startSink) {
+      // The sink may bind an ephemeral port (LOCAL_SMTP_PORT=0); connect to the port it actually got.
+      const port = await startLocalSink(built.transport.port);
+      built.transport.port = port;
+      built.info.port = port;
+    }
     this.transporter = nodemailer.createTransport({
       ...built.transport,
       pool: this.pool,

@@ -9,6 +9,8 @@ import { launchBrowser } from '../../lib/virtualAuthenticator.js';
  * measurement loops never share an event loop with API requests.
  */
 const { protocols, settings, mailProvider, rp } = workerData;
+// The API thread owns the local SMTP sink; connect to the port it bound.
+if (workerData.localSmtpPort) process.env.LOCAL_SMTP_PORT = String(workerData.localSmtpPort);
 let cancelled = false;
 parentPort.on('message', (msg) => {
   if (msg?.type === 'cancel') cancelled = true;
@@ -60,4 +62,6 @@ try {
 } finally {
   mailer?.close();
   if (browserPromise) await (await browserPromise.catch(() => null))?.close().catch(() => {});
+  // The message listener would otherwise keep this thread alive after the job is finished.
+  parentPort.close();
 }
