@@ -32,9 +32,24 @@ export async function seed({ log = console.log } = {}) {
         );
       a.password = a.role === 'admin' ? 'AdminPass#2026' : 'DemoPass#2026';
     }
+    const varName = `SEED_${a.role === 'admin' ? 'ADMIN' : 'DEMO'}_PASSWORD`;
+    if (a.password !== a.password.trim()) {
+      log(`! warning: ${varName} has leading/trailing spaces; they are part of the password`);
+    }
     const existing = await User.findOne({ username: a.username });
     if (existing) {
-      log(`= user ${a.username} exists (${existing.role})`);
+      // Recovery switch: SEED_RESET_PASSWORDS=true re-applies the env passwords to existing seed
+      // accounts (and re-activates them). Remove the variable again after signing in.
+      if (['1', 'true', 'yes'].includes(String(process.env.SEED_RESET_PASSWORDS).toLowerCase())) {
+        existing.passwordHash = await hashPassword(a.password);
+        existing.status = 'active';
+        await existing.save();
+        log(`~ user ${a.username} password reset from ${varName}`);
+      } else {
+        log(
+          `= user ${a.username} exists (${existing.role}); password unchanged (set SEED_RESET_PASSWORDS=true to reset)`,
+        );
+      }
       continue;
     }
     await User.create({

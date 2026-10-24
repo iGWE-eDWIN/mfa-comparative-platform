@@ -56,3 +56,27 @@ describe('Chapter 3 §3.9.4 indexes', () => {
     }
   });
 });
+
+describe('Seed recovery switch', () => {
+  it('SEED_RESET_PASSWORDS re-applies the env password to existing seed accounts', async () => {
+    const { seed } = await import('../../scripts/seed.js');
+    const { User } = await import('../../src/models/index.js');
+    const bcrypt = (await import('bcryptjs')).default;
+    const logs = [];
+    process.env.SEED_ADMIN_PASSWORD = 'first-admin-password';
+    await seed({ log: (m) => logs.push(m) }); // admin already exists from setup: unchanged
+    let admin = await User.findOne({ username: 'admin' }).select('+passwordHash');
+    expect(await bcrypt.compare('first-admin-password', admin.passwordHash)).toBe(false);
+    expect(logs.some((l) => l.includes('password unchanged'))).toBe(true);
+
+    process.env.SEED_RESET_PASSWORDS = 'true';
+    process.env.SEED_ADMIN_PASSWORD = ' spaced-password ';
+    await seed({ log: (m) => logs.push(m) });
+    admin = await User.findOne({ username: 'admin' }).select('+passwordHash');
+    expect(await bcrypt.compare(' spaced-password ', admin.passwordHash)).toBe(true);
+    expect(logs.some((l) => l.includes('leading/trailing spaces'))).toBe(true);
+    expect(logs.some((l) => l.includes('password reset from SEED_ADMIN_PASSWORD'))).toBe(true);
+    delete process.env.SEED_RESET_PASSWORDS;
+    delete process.env.SEED_ADMIN_PASSWORD;
+  });
+});
