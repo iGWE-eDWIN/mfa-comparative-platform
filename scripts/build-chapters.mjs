@@ -35,7 +35,14 @@ for (const part of tables
   .slice(1)
   .reduce((acc, x, i, arr) => (i % 2 ? acc : [...acc, [x, arr[i + 1]]]), []))
   blocks[part[0]] = part[1].trim();
-const template = fs.readFileSync(path.join(root, 'docs/chapters/chapter4.template.md'), 'utf8');
+const templatePath = path.join(root, 'docs/chapters/chapter4.template.md');
+if (!fs.existsSync(templatePath)) {
+  console.log(
+    'Chapter template not present (thesis files are not in the public repository); tables written to docs/results/chapter4-tables.md only.',
+  );
+  process.exit(0);
+}
+const template = fs.readFileSync(templatePath, 'utf8');
 const doc = template.replace(/\{\{(T-[A-Z]+)\}\}/g, (_, id) => {
   if (!blocks[id]) throw new Error(`Missing generated table ${id}`);
   return blocks[id];

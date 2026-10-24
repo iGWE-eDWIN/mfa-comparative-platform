@@ -40,16 +40,17 @@ export const PROVIDERS = {
     return {
       transport: {
         host: 'smtp-relay.brevo.com',
-        port: 587,
-        secure: false,
+        // 587 and 2525 use STARTTLS; 465 is implicit TLS. 2525 avoids hosts that block 587/465.
+        port: env.BREVO_SMTP_PORT,
+        secure: env.BREVO_SMTP_PORT === 465,
         requireTLS: true,
         auth: { user: env.BREVO_SMTP_USER, pass: env.BREVO_SMTP_KEY },
       },
       info: {
         provider: 'brevo',
         host: 'smtp-relay.brevo.com',
-        port: 587,
-        tls: 'STARTTLS (required)',
+        port: env.BREVO_SMTP_PORT,
+        tls: env.BREVO_SMTP_PORT === 465 ? 'implicit TLS' : 'STARTTLS (required)',
         previewSupported: false,
       },
     };

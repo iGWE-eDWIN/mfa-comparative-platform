@@ -38,11 +38,12 @@ export function resolveChromium() {
   return found;
 }
 
+// --disable-dev-shm-usage: containers (Docker, Render) often have a 64 MB /dev/shm that crashes Chromium.
 export async function launchBrowser() {
   return chromium.launch({
     headless: true,
     executablePath: resolveChromium(),
-    args: ['--no-first-run', '--disable-gpu'],
+    args: ['--no-first-run', '--disable-gpu', '--disable-dev-shm-usage'],
   });
 }
 

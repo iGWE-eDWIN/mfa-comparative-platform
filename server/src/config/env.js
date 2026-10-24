@@ -33,6 +33,11 @@ const schema = z.object({
   MAIL_FROM: z.string().default('MFA Benchmark Platform <no-reply@mfa-platform.test>'),
   BREVO_SMTP_USER: z.string().optional(),
   BREVO_SMTP_KEY: z.string().optional(),
+  BREVO_SMTP_PORT: z.coerce
+    .number()
+    .int()
+    .refine((p) => [587, 2525, 465].includes(p), 'Use 587, 2525 or 465')
+    .default(587),
   GMAIL_USER: z.string().optional(),
   GMAIL_APP_PASSWORD: z.string().optional(),
   MAILTRAP_USER: z.string().optional(),
@@ -43,15 +48,28 @@ const schema = z.object({
   /** When true, a failed Ethereal account creation falls back to the local SMTP sink (D03). */
   MAIL_FALLBACK_LOCAL: bool.default(true),
 
-  WEBAUTHN_RP_ID: z.string().default('localhost'),
+  /** Default: Render's public hostname when deployed there, otherwise localhost. */
+  WEBAUTHN_RP_ID: z.string().optional(),
   WEBAUTHN_RP_NAME: z.string().default('MFA Comparative Platform'),
-  WEBAUTHN_ORIGIN: z.string().default('http://localhost:5173'),
+  /** Default: Render's public URL when deployed there, otherwise the Vite dev origin. */
+  WEBAUTHN_ORIGIN: z.string().optional(),
+  /** Set automatically by Render (https://render.com/docs/environment-variables). */
+  RENDER_EXTERNAL_URL: z.string().optional(),
+  RENDER_EXTERNAL_HOSTNAME: z.string().optional(),
   /** Optional explicit Chrome/Chromium path for the WebAuthn benchmark (otherwise Playwright's). */
   CHROMIUM_PATH: z.string().optional(),
 
   BENCHMARK_CONCURRENCY: z.coerce.number().int().min(1).max(4).default(1),
   BENCHMARK_MAX_ITERATIONS: z.coerce.number().int().positive().default(10000),
   SERVE_CLIENT: bool.default(false),
+  /** Express "trust proxy": a hop count (e.g. 1 behind Render's proxy) or a name such as "loopback". */
+  TRUST_PROXY: z.string().default('loopback'),
+  /**
+   * Show the test-mailbox preview link / local inbox in the UI. Always on outside production.
+   * In production only for demo deployments whose mail goes to a test mailbox: it lets anyone who
+   * knows a password read that account's email code, so OOB is then not a real second factor.
+   */
+  MAIL_TEST_INBOX_IN_UI: bool.default(false),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 });
 
@@ -81,9 +99,17 @@ function load() {
   env.SECRETS_ENCRYPTION_KEY ??= '0'.repeat(63) + '1';
   env.OTP_HMAC_KEY ??= 'dev-only-otp-hmac-key-change-me-0123456789';
   env.COOKIE_SECURE ??= isProd;
-  env.clientOrigins = env.CLIENT_ORIGINS.split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
+  env.WEBAUTHN_ORIGIN ??= env.RENDER_EXTERNAL_URL ?? 'http://localhost:5173';
+  env.WEBAUTHN_RP_ID ??= env.RENDER_EXTERNAL_HOSTNAME ?? 'localhost';
+  env.clientOrigins = [
+    ...new Set(
+      [...env.CLIENT_ORIGINS.split(','), env.RENDER_EXTERNAL_URL ?? '']
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ),
+  ];
+  env.trustProxy = /^\d+$/.test(env.TRUST_PROXY) ? Number(env.TRUST_PROXY) : env.TRUST_PROXY;
+  env.showTestInbox = !isProd || env.MAIL_TEST_INBOX_IN_UI;
   return env;
 }
 

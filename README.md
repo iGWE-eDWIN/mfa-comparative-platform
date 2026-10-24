@@ -2,9 +2,10 @@
 
 A web-based comparative platform for benchmarking multi-factor authentication algorithms and protocols. It runs **HOTP** (RFC 4226), **TOTP** (RFC 6238), **OOB Email OTP** and **FIDO2/WebAuthn** (W3C Level 3, through a Virtual Authenticator) under identical, controlled conditions, shows progress live over Socket.IO, and presents side-by-side results that you can export as CSV or JSON.
 
-Final-year Computer Science project. Built with MongoDB, Express.js, React and Node.js, plus Socket.IO. The design follows Chapters 1–3 in [`docs/`](docs/); see [`docs/PLAN.md`](docs/PLAN.md) for the requirement → file → test traceability and [`docs/DECISIONS.md`](docs/DECISIONS.md) for every design decision and document conflict.
+Final-year Computer Science project. Built with MongoDB, Express.js, React and Node.js, plus Socket.IO. The design follows the project's Chapters 1–3 (kept out of this public repository); see [`docs/PLAN.md`](docs/PLAN.md) for the requirement → file → test traceability and [`docs/DECISIONS.md`](docs/DECISIONS.md) for every design decision and document conflict.
 
 > **Honest limitations**
+>
 > - WebAuthn results come from a **software Virtual Authenticator** (Chrome DevTools Protocol), not hardware keys.
 > - Biometrics are covered only through the WebAuthn user-verification abstraction.
 > - Security tests are **controlled simulations** of defined scenarios, not penetration testing.
@@ -28,10 +29,10 @@ npm run dev:all                 # API on :4000 + Vite client on :5173 (starts Mo
 
 Open <http://localhost:5173> and sign in:
 
-| Account | Username | Password |
-|---|---|---|
-| Demo user | `demo` | `DemoPass#2026` |
-| Administrator | `admin` | `AdminPass#2026` |
+| Account       | Username | Password         |
+| ------------- | -------- | ---------------- |
+| Demo user     | `demo`   | `DemoPass#2026`  |
+| Administrator | `admin`  | `AdminPass#2026` |
 
 These are development defaults. Set `SEED_ADMIN_PASSWORD` and `SEED_DEMO_PASSWORD` before seeding anything shared.
 
@@ -46,7 +47,7 @@ cp .env.example .env    # fill JWT_SECRET, SECRETS_ENCRYPTION_KEY, OTP_HMAC_KEY,
 docker compose up --build
 ```
 
-Open <http://localhost:8080>. The Compose file runs `mongo`, `server` (built on the Playwright image, which includes Chromium) and `client` (nginx, which proxies `/api` and `/socket.io`). *Docker was not available on the development machine, so the Compose path has not been verified there; the no-Docker path is the verified one (`docs/DECISIONS.md` D22).*
+Open <http://localhost:8080>. The Compose file runs `mongo`, `server` (built on the Playwright image, which includes Chromium) and `client` (nginx, which proxies `/api` and `/socket.io`). _Docker was not available on the development machine, so the Compose path has not been verified there; the no-Docker path is the verified one (`docs/DECISIONS.md` D22)._
 
 ---
 
@@ -68,7 +69,7 @@ The workflow follows Figure 3.6: **Login → Dashboard → New comparison → Li
 4. **Simulators:** try each protocol by hand.
    - HOTP/TOTP enrolment with a QR code and an in-browser virtual token.
    - Email codes, delivered to Ethereal or to the local inbox.
-   - WebAuthn registration and authentication. Use a real passkey, or Chrome DevTools → *More tools → WebAuthn → Enable virtual authenticator environment*.
+   - WebAuthn registration and authentication. Use a real passkey, or Chrome DevTools → _More tools → WebAuthn → Enable virtual authenticator environment_.
 5. **My factors:** choose one enrolled factor to require after your password at sign-in.
 6. **Admin:** manage users (role, suspension), protocols (enable/disable, default parameters) and audit logs.
 
@@ -83,17 +84,43 @@ This runs identical four-protocol jobs through the API and writes raw JSON/CSV e
 
 ---
 
+## Deploying live on Render (free tier)
+
+The repository includes a single-service `Dockerfile` (API + built client + Chromium) and a `render.yaml` Blueprint.
+
+1. **MongoDB Atlas (free M0 cluster)**
+   1. Sign up at <https://www.mongodb.com/cloud/atlas/register> and create a free **M0** cluster.
+   2. Go to **Database Access → Add New Database User**. Use password authentication and save the username and password.
+   3. Go to **Network Access → Add IP Address → Allow Access from Anywhere (`0.0.0.0/0`)**. Render's free instances have no fixed IP.
+   4. Click **Connect → Drivers** and copy the connection string. Insert your password and a database name, for example `mongodb+srv://USER:PASS@cluster0.xxxxx.mongodb.net/mfa_platform?retryWrites=true&w=majority`.
+2. **Render**
+   1. Sign in at <https://render.com> with GitHub.
+   2. Choose **New → Blueprint** and select this repository. Render reads `render.yaml`.
+   3. When prompted, enter `MONGODB_URI` (from step 1), `SEED_ADMIN_PASSWORD` and `SEED_DEMO_PASSWORD`.
+   4. Click **Apply**. The first build takes several minutes because the Playwright base image is large.
+3. Open `https://<service-name>.onrender.com` and sign in as `demo` or `admin` with the passwords you set.
+
+Notes:
+
+- **Generated configuration:** `JWT_SECRET`, `SECRETS_ENCRYPTION_KEY` and `OTP_HMAC_KEY` are generated by Render. The WebAuthn origin and RP ID come from Render's `RENDER_EXTERNAL_URL` and `RENDER_EXTERNAL_HOSTNAME`, so you don't configure the URL anywhere.
+- **Spin-down:** free instances spin down after about 15 minutes idle. The first request afterwards takes about a minute. A job that is running when the instance stops is marked _Failed (server restarted)_.
+- **Resources:** 512 MB RAM and a shared CPU. `BENCHMARK_MAX_ITERATIONS` is set to 2,000, and live timings are much noisier than on a dedicated machine. Use the local setup for the reported campaign.
+- **Email:** free hosting tiers commonly block outbound SMTP on ports 25/465/587. The app probes Ethereal's SMTP connection at start-up and falls back to the built-in local inbox, shown in the UI because `MAIL_TEST_INBOX_IN_UI=true`. For real delivery, set `MAIL_PROVIDER=brevo`, `BREVO_SMTP_PORT=2525`, the Brevo credentials and a verified `MAIL_FROM`, and remove `MAIL_TEST_INBOX_IN_UI`.
+- **Demo setting:** with a test mailbox shown in the UI, OOB Email is a demonstration, not a real second factor.
+
+---
+
 ## Email (OOB) providers
 
 Set `MAIL_PROVIDER` in `.env`:
 
-| Value | Use | Notes |
-|---|---|---|
-| `ethereal` (default) | Development and benchmarks | No signup. A test account is created automatically with `nodemailer.createTestAccount()` and cached in `server/.data/`. The UI shows the message preview link. If Ethereal is unreachable, the platform falls back to `local` (`MAIL_FALLBACK_LOCAL=true`) and records the fallback in every affected result. |
-| `local` | Offline / firewalled machines, CI | In-process SMTP sink on `127.0.0.1:LOCAL_SMTP_PORT` with STARTTLS. The development inbox is shown on the OOB simulator page. Nothing leaves the machine. |
-| `brevo` | Real delivery, free tier | `smtp-relay.brevo.com:587`, STARTTLS required. See below. |
-| `gmail` | Real delivery | Port 465 (implicit TLS) with an app password. |
-| `mailtrap` | Sandbox inbox | `sandbox.smtp.mailtrap.io:2525`, STARTTLS required. |
+| Value                | Use                               | Notes                                                                                                                                                                                                                                                                                                                                                       |
+| -------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ethereal` (default) | Development and benchmarks        | No signup. A test account is created automatically with `nodemailer.createTestAccount()` and cached in `server/.data/`. The UI shows the message preview link. If the Ethereal API or its SMTP port is unreachable (probed at start-up), the platform falls back to `local` (`MAIL_FALLBACK_LOCAL=true`) and records the fallback in every affected result. |
+| `local`              | Offline / firewalled machines, CI | In-process SMTP sink on `127.0.0.1:LOCAL_SMTP_PORT` with STARTTLS. The development inbox is shown on the OOB simulator page. Nothing leaves the machine.                                                                                                                                                                                                    |
+| `brevo`              | Real delivery, free tier          | `smtp-relay.brevo.com` on `BREVO_SMTP_PORT` (587 or 2525 with STARTTLS, or 465 with implicit TLS). See below.                                                                                                                                                                                                                                               |
+| `gmail`              | Real delivery                     | Port 465 (implicit TLS) with an app password.                                                                                                                                                                                                                                                                                                               |
+| `mailtrap`           | Sandbox inbox                     | `sandbox.smtp.mailtrap.io:2525`, STARTTLS required.                                                                                                                                                                                                                                                                                                         |
 
 All real providers use `requireTLS` (or implicit TLS) with certificate validation, so a downgrade to plaintext SMTP fails instead of exposing the code (Chapter 2 §2.4.3.2). Credentials are only read from `.env`, which is git-ignored.
 
@@ -110,7 +137,7 @@ All real providers use `requireTLS` (or implicit TLS) with certificate validatio
    BREVO_SMTP_KEY=<the SMTP key>
    MAIL_FROM="MFA Platform <your-verified-sender@example.com>"
    ```
-6. Restart the API. Check the **System status** card on the dashboard, then send a code from *Simulators → OOB Email*.
+6. Restart the API. Check the **System status** card on the dashboard, then send a code from _Simulators → OOB Email_.
 
 To protect the free quota, benchmark jobs that would send more than `BREVO_MAX_BENCH_EMAILS` (default 50) emails through Brevo are refused. Use `ethereal` or `local` for large runs.
 
@@ -147,12 +174,13 @@ server/  Node.js + Express (logic tier)            MongoDB (data tier)
   src/services/{authService,auditService,exportService,assessmentService,environmentService}.js
   src/services/mail/        provider abstraction + local SMTP sink
 scripts/   dev-mongo, dev-all, campaign, screenshots
-docs/      chapters, figures, PLAN, DECISIONS, openapi.yaml, results, screenshots, Chapter 4/5 drafts
+docs/      PLAN, DECISIONS, openapi.yaml, results (campaign data, test reports), screenshots
 ```
 
 **Collections:** the five Chapter 3 collections (`users`, `protocols`, `comparison_jobs`, `results`, `audit_logs`) with the §3.9.4 indexes, plus three documented extension collections (`credentials`, `otp_challenges` with a TTL index, and `webauthn_challenges` with a TTL index); see D04.
 
 **Security:**
+
 - bcrypt (cost 12) password hashing.
 - httpOnly `SameSite=Strict` session cookie, with `Secure` in production.
 - Role-based access, and owner-only access to jobs and results.
@@ -166,10 +194,10 @@ docs/      chapters, figures, PLAN, DECISIONS, openapi.yaml, results, screenshot
 
 ## Troubleshooting
 
-| Symptom | Fix |
-|---|---|
-| `No Chromium found` when a WebAuthn job starts | `npm run browsers`, or set `CHROMIUM_PATH` |
-| WebAuthn simulator fails with `SecurityError` | `WEBAUTHN_ORIGIN` must exactly match the address in the browser bar (`http://localhost:5173` in dev, `:4000` single-port) |
-| OOB Email shows "Ethereal unavailable … using local SMTP sink" | Your network blocks Ethereal. Use the local inbox, or configure `brevo`/`gmail`/`mailtrap` |
-| `MongoServerSelectionError` | Start `npm run dev:db` or fix `MONGODB_URI` |
-| Port 5173/4000 in use | Stop the other process, or change `PORT` and the Vite port |
+| Symptom                                                        | Fix                                                                                                                       |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `No Chromium found` when a WebAuthn job starts                 | `npm run browsers`, or set `CHROMIUM_PATH`                                                                                |
+| WebAuthn simulator fails with `SecurityError`                  | `WEBAUTHN_ORIGIN` must exactly match the address in the browser bar (`http://localhost:5173` in dev, `:4000` single-port) |
+| OOB Email shows "Ethereal unavailable … using local SMTP sink" | Your network blocks Ethereal. Use the local inbox, or configure `brevo`/`gmail`/`mailtrap`                                |
+| `MongoServerSelectionError`                                    | Start `npm run dev:db` or fix `MONGODB_URI`                                                                               |
+| Port 5173/4000 in use                                          | Stop the other process, or change `PORT` and the Vite port                                                                |

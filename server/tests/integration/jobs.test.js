@@ -35,17 +35,15 @@ describe('Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9)', () => {
   });
 
   it('creates a Pending job with merged, validated parameters and environment metadata', async () => {
-    const res = await agent
-      .post('/api/jobs')
-      .send(
-        body({
-          protocols: [
-            { name: 'HOTP', config: { lookAheadWindow: 3 } },
-            { name: 'TOTP' },
-            { name: 'OOB Email' },
-          ],
-        }),
-      );
+    const res = await agent.post('/api/jobs').send(
+      body({
+        protocols: [
+          { name: 'HOTP', config: { lookAheadWindow: 3 } },
+          { name: 'TOTP' },
+          { name: 'OOB Email' },
+        ],
+      }),
+    );
     expect(res.status).toBe(202);
     const job = res.body.job;
     jobId = job._id;
@@ -160,11 +158,9 @@ describe('Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9)', () => {
 
   it('records usability and integration observations (FR12)', async () => {
     const resultId = (await Result.findOne({ jobId, protocolName: 'TOTP' }))._id;
-    const res = await agent
-      .patch(`/api/results/${resultId}/assessment`)
-      .send({
-        usability: { scores: { userSteps: 5 }, observations: 'Code typed in 6 s on average' },
-      });
+    const res = await agent.patch(`/api/results/${resultId}/assessment`).send({
+      usability: { scores: { userSteps: 5 }, observations: 'Code typed in 6 s on average' },
+    });
     expect(res.status).toBe(200);
     expect(res.body.usabilityAssessment.observations).toBe('Code typed in 6 s on average');
     expect(
@@ -183,14 +179,12 @@ describe('Comparison jobs (FR2, FR3, FR5, FR6, FR8, FR9)', () => {
 describe('Job state machine (Figure 3.4) and cancellation', () => {
   it('cancels a running job → Cancelled, and rejects cancelling a finished one', async () => {
     const { agent } = await loggedInAgent(a);
-    const { body: b } = await agent
-      .post('/api/jobs')
-      .send({
-        protocols: [{ name: 'HOTP' }],
-        iterations: 10000,
-        warmupIterations: 0,
-        runSecuritySimulations: false,
-      });
+    const { body: b } = await agent.post('/api/jobs').send({
+      protocols: [{ name: 'HOTP' }],
+      iterations: 10000,
+      warmupIterations: 0,
+      runSecuritySimulations: false,
+    });
     const id = b.job._id;
     for (let i = 0; i < 100 && (await ComparisonJob.findById(id)).status !== 'Running'; i++)
       await new Promise((r) => setTimeout(r, 50));
@@ -203,15 +197,13 @@ describe('Job state machine (Figure 3.4) and cancellation', () => {
   });
   it('a job exceeding its timeout ends Failed with a meaningful error', async () => {
     const { agent } = await loggedInAgent(a);
-    const { body: b } = await agent
-      .post('/api/jobs')
-      .send({
-        protocols: [{ name: 'OOB Email' }],
-        iterations: 10000,
-        warmupIterations: 0,
-        timeoutMs: 1000,
-        runSecuritySimulations: false,
-      });
+    const { body: b } = await agent.post('/api/jobs').send({
+      protocols: [{ name: 'OOB Email' }],
+      iterations: 10000,
+      warmupIterations: 0,
+      timeoutMs: 1000,
+      runSecuritySimulations: false,
+    });
     const done = await waitForJob(agent, b.job._id);
     expect(done.status).toBe('Failed');
     expect(done.error).toMatch(/timeout of 1000 ms/);

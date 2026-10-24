@@ -10,7 +10,9 @@ import { startLocalSink, stopLocalSink } from './services/mail/localSink.js';
 
 export async function start({ port = env.PORT, mongoUri } = {}) {
   if (env.usingDevSecrets && env.NODE_ENV !== 'test') {
-    logger.warn('Using built-in development secrets; set JWT_SECRET, SECRETS_ENCRYPTION_KEY and OTP_HMAC_KEY in .env');
+    logger.warn(
+      'Using built-in development secrets; set JWT_SECRET, SECRETS_ENCRYPTION_KEY and OTP_HMAC_KEY in .env',
+    );
   }
   await connectDb(mongoUri);
   if (['local', 'ethereal'].includes(env.MAIL_PROVIDER)) await startLocalSink();

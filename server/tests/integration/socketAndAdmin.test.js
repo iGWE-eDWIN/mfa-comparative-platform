@@ -66,14 +66,12 @@ describe('Socket.IO real-time progress (FR7)', () => {
       mine.on(ev, (p) => seen.push([ev, p]));
       theirs.on(ev, () => leaked.push(ev));
     }
-    const { body } = await agent
-      .post('/api/jobs')
-      .send({
-        protocols: [{ name: 'HOTP' }, { name: 'TOTP' }],
-        iterations: 3000,
-        warmupIterations: 50,
-        runSecuritySimulations: false,
-      });
+    const { body } = await agent.post('/api/jobs').send({
+      protocols: [{ name: 'HOTP' }, { name: 'TOTP' }],
+      iterations: 3000,
+      warmupIterations: 50,
+      runSecuritySimulations: false,
+    });
     // Performance NFR: benchmark runs in a worker, so API requests are served meanwhile.
     const t0 = Date.now();
     const health = await request(a).get('/api/health');

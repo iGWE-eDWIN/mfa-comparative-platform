@@ -16,7 +16,7 @@ const CLIENT_DIST = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 export function createApp() {
   const app = express();
   app.disable('x-powered-by');
-  app.set('trust proxy', 'loopback');
+  app.set('trust proxy', env.trustProxy);
   app.use(
     helmet({
       contentSecurityPolicy: {

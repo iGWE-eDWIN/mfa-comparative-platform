@@ -74,14 +74,12 @@ describe('Mail provider abstraction', () => {
     try {
       const { PROVIDERS } = await providersWith({});
       const nodemailer = (await import('nodemailer')).default;
-      const spy = vi
-        .spyOn(nodemailer, 'createTestAccount')
-        .mockResolvedValue({
-          user: 'eth@ethereal.email',
-          pass: 'pw',
-          smtp: { host: 'smtp.ethereal.email', port: 587 },
-          web: 'https://ethereal.email',
-        });
+      const spy = vi.spyOn(nodemailer, 'createTestAccount').mockResolvedValue({
+        user: 'eth@ethereal.email',
+        pass: 'pw',
+        smtp: { host: 'smtp.ethereal.email', port: 587 },
+        web: 'https://ethereal.email',
+      });
       const first = await PROVIDERS.ethereal();
       expect(first.transport).toMatchObject({
         host: 'smtp.ethereal.email',
@@ -114,6 +112,57 @@ describe('Mail provider abstraction', () => {
     await expect(strict.init()).rejects.toThrow(/network unreachable/);
     m.close();
     await stopLocalSink();
+  });
+});
+
+describe('Ethereal SMTP probe', () => {
+  it('falls back to the local sink when the account exists but SMTP is unreachable', async () => {
+    vi.resetModules();
+    const providers = await import('../../src/services/mail/providers.js');
+    vi.spyOn(providers.PROVIDERS, 'ethereal').mockResolvedValue({
+      // Port 1 on loopback: connection refused, as when a network blocks outbound SMTP.
+      transport: {
+        host: '127.0.0.1',
+        port: 1,
+        secure: false,
+        requireTLS: true,
+        auth: { user: 'u', pass: 'p' },
+      },
+      info: {
+        provider: 'ethereal',
+        host: '127.0.0.1',
+        port: 1,
+        tls: 'STARTTLS (required)',
+        previewSupported: true,
+      },
+    });
+    const { Mailer } = await import('../../src/services/mail/mailService.js');
+    const { stopLocalSink } = await import('../../src/services/mail/localSink.js');
+    const m = new Mailer({ provider: 'ethereal', fallbackLocal: true, pool: false });
+    const [a, b] = await Promise.all([m.init(), m.init()]);
+    expect(a).toBe(b); // concurrent callers share one initialisation
+    expect(a.provider).toBe('local');
+    expect(a.fallbackReason).toMatch(/ECONNREFUSED|SMTP connection/);
+    m.close();
+    await stopLocalSink();
+  });
+  it('Brevo can use port 2525 (STARTTLS) or 465 (implicit TLS)', async () => {
+    let { PROVIDERS } = await providersWith({
+      BREVO_SMTP_USER: 'u',
+      BREVO_SMTP_KEY: 'k',
+      BREVO_SMTP_PORT: '2525',
+    });
+    expect((await PROVIDERS.brevo()).transport).toMatchObject({
+      port: 2525,
+      secure: false,
+      requireTLS: true,
+    });
+    ({ PROVIDERS } = await providersWith({
+      BREVO_SMTP_USER: 'u',
+      BREVO_SMTP_KEY: 'k',
+      BREVO_SMTP_PORT: '465',
+    }));
+    expect((await PROVIDERS.brevo()).transport).toMatchObject({ port: 465, secure: true });
   });
 });
 

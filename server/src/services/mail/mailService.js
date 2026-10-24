@@ -3,6 +3,9 @@ import { env } from '../../config/env.js';
 import { logger } from '../../config/logger.js';
 import { PROVIDERS } from './providers.js';
 import { startLocalSink } from './localSink.js';
+import { withTimeout } from '../../lib/timing.js';
+
+const PROBE_TIMEOUT_MS = Number(process.env.MAIL_PROBE_TIMEOUT_MS ?? 8000);
 
 /**
  * Mailer with a provider abstraction (MAIL_PROVIDER=ethereal|brevo|gmail|mailtrap|local).
@@ -22,18 +25,41 @@ export class Mailer {
     this.fallbackReason = null;
   }
 
-  async init() {
-    if (this.transporter) return this.info;
+  /** Resolve the provider once; concurrent callers share the same initialisation. */
+  init() {
+    this.initPromise ??= this.#resolve().catch((err) => {
+      this.initPromise = null;
+      throw err;
+    });
+    return this.initPromise;
+  }
+
+  async #resolve() {
     let provider = this.requested;
     let built;
+    const fallBack = async (reason) => {
+      this.fallbackReason = `Ethereal unavailable (${reason}); using local SMTP sink`;
+      logger.warn(this.fallbackReason);
+      provider = 'local';
+      return PROVIDERS.local();
+    };
     try {
       built = await PROVIDERS[provider]();
     } catch (err) {
       if (provider !== 'ethereal' || !this.fallbackLocal) throw err;
-      this.fallbackReason = `Ethereal unavailable (${err.message}); using local SMTP sink`;
-      logger.warn(this.fallbackReason);
-      provider = 'local';
-      built = await PROVIDERS.local();
+      built = await fallBack(err.message);
+    }
+    if (provider === 'ethereal' && this.fallbackLocal) {
+      // The account API can be reachable while outbound SMTP is blocked (common on hosting free
+      // tiers and campus networks), so probe the SMTP connection before relying on it.
+      const probe = this.#createTransport(built.transport);
+      try {
+        await withTimeout(probe.verify(), PROBE_TIMEOUT_MS, 'SMTP connection to Ethereal');
+      } catch (err) {
+        built = await fallBack(err.message);
+      } finally {
+        probe.close();
+      }
     }
     if (provider === 'local' && this.startSink) {
       // The sink may bind an ephemeral port (LOCAL_SMTP_PORT=0); connect to the port it actually got.
@@ -41,14 +67,7 @@ export class Mailer {
       built.transport.port = port;
       built.info.port = port;
     }
-    this.transporter = nodemailer.createTransport({
-      ...built.transport,
-      pool: this.pool,
-      maxConnections: 1,
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
-    });
+    this.transporter = this.#createTransport(built.transport);
     this.info = {
       ...built.info,
       requested: this.requested,
@@ -56,6 +75,17 @@ export class Mailer {
       pooled: this.pool,
     };
     return this.info;
+  }
+
+  #createTransport(transport) {
+    return nodemailer.createTransport({
+      ...transport,
+      pool: this.pool,
+      maxConnections: 1,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+    });
   }
 
   /** Check connectivity and authentication without sending anything. */
@@ -87,6 +117,7 @@ export class Mailer {
   close() {
     this.transporter?.close();
     this.transporter = null;
+    this.initPromise = null;
   }
 }
 

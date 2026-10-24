@@ -89,8 +89,7 @@ export async function sendOobCode(user, purpose = 'simulator') {
     provider: delivery.provider,
     sendTimeMs: delivery.sendTimeMs,
   });
-  const showPreview =
-    PREVIEW_PROVIDERS.includes(delivery.provider) && env.NODE_ENV !== 'production';
+  const showPreview = PREVIEW_PROVIDERS.includes(delivery.provider) && env.showTestInbox;
   return {
     challengeId: String(ch._id),
     destination: maskEmail(user.email),
@@ -144,9 +143,9 @@ export async function verifyOobCode(user, challengeId, code, purpose = 'simulato
   return { ok: true, serverTimeMs };
 }
 
-/** Development inbox for the local SMTP sink (never enabled in production). */
+/** Development inbox for the local SMTP sink (in production only with MAIL_TEST_INBOX_IN_UI=true). */
 export function devInbox(user) {
-  if (env.NODE_ENV === 'production') throw new HttpError(404, 'Not available', 'NOT_FOUND');
+  if (!env.showTestInbox) throw new HttpError(404, 'Not available', 'NOT_FOUND');
   return localInbox(user.email).map((m) => ({
     id: m.id,
     receivedAt: m.receivedAt,

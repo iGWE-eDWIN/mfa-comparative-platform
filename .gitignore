@@ -9,3 +9,12 @@ playwright-report/
 test-results/
 *.log
 .DS_Store
+
+# Thesis material kept local only (not published in the public repository)
+docs/source/
+docs/text/
+docs/figures/
+docs/chapters/
+docs/CHAPTER4_DRAFT.md
+docs/CHAPTER5_DRAFT.md
+docs/results/chapter4-tables.md
