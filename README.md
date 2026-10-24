@@ -194,10 +194,11 @@ docs/      PLAN, DECISIONS, openapi.yaml, results (campaign data, test reports),
 
 ## Troubleshooting
 
-| Symptom                                                        | Fix                                                                                                                       |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `No Chromium found` when a WebAuthn job starts                 | `npm run browsers`, or set `CHROMIUM_PATH`                                                                                |
-| WebAuthn simulator fails with `SecurityError`                  | `WEBAUTHN_ORIGIN` must exactly match the address in the browser bar (`http://localhost:5173` in dev, `:4000` single-port) |
-| OOB Email shows "Ethereal unavailable … using local SMTP sink" | Your network blocks Ethereal. Use the local inbox, or configure `brevo`/`gmail`/`mailtrap`                                |
-| `MongoServerSelectionError`                                    | Start `npm run dev:db` or fix `MONGODB_URI`                                                                               |
-| Port 5173/4000 in use                                          | Stop the other process, or change `PORT` and the Vite port                                                                |
+| Symptom                                                        | Fix                                                                                                                                                                                                |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `No Chromium found` when a WebAuthn job starts                 | `npm run browsers`, or set `CHROMIUM_PATH`                                                                                                                                                         |
+| WebAuthn simulator fails with `SecurityError`                  | `WEBAUTHN_ORIGIN` must exactly match the address in the browser bar (`http://localhost:5173` in dev, `:4000` single-port)                                                                          |
+| OOB Email shows "Ethereal unavailable … using local SMTP sink" | Your network blocks Ethereal. Use the local inbox, or configure `brevo`/`gmail`/`mailtrap`                                                                                                         |
+| `MongoServerSelectionError`                                    | Start `npm run dev:db` or fix `MONGODB_URI`                                                                                                                                                        |
+| Seeded `admin`/`demo` password rejected (e.g. on Render)       | Accounts are created once, so later changes to `SEED_*_PASSWORD` are ignored. Set `SEED_RESET_PASSWORDS=true`, restart, sign in, then delete the variable. Check the logs for `! warning … spaces` |
+| Port 5173/4000 in use                                          | Stop the other process, or change `PORT` and the Vite port                                                                                                                                         |
